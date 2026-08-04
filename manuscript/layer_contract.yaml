@@ -1,5 +1,27 @@
-# Code-centric exemplar: optional monorepo adapters only.
-allow_infrastructure_imports:
-  - src/analysis/_infra.py
-  - src/_runtime.py
-  - src/benchmark_support.py
+# bond-cli layer contract
+version: "3.0.0"
+description: "Defines the module boundary rules for projects/working/bond/bond-cli."
+
+layers:
+  src/bond_cli/dispatch.py:
+    role: "Argparse front door + dispatch"
+    rules:
+      - "Routes verbs to built layers; no business logic implemented here"
+      - "Loads films via the FROZEN bond_api discovery contract"
+      - "Deterministic output: roster order, sorted result keys"
+  src/bond_cli/manuscript_variables.py:
+    role: "Manuscript token map"
+    rules:
+      - "Identity tokens from manuscript/config.yaml (PyYAML)"
+      - "Fleet tokens from the coordinator registry + dispatch.COMMANDS"
+  scripts:
+    role: "Thin wrappers"
+    rules:
+      - "sys.path bootstrap + argv forwarding only"
+
+cross_cutting:
+  - "Delegates to bond-api / bond-coordinator / bond-orchestrator / bond-utilities; never re-implements their logic"
+  - "No infrastructure.* imports anywhere in src/ or scripts/"
+  - "Zero mocks in tests; real subprocess + real film providers"
+  - "Gate >= 90% line+branch coverage on src/"
+  - "Exit codes: 0 success, 1 command failure, 2 argparse misuse"

@@ -1,13 +1,5 @@
-# bond-cli/data
+# data/
 
-Project-maintained **inputs** for the code exemplar (not pipeline outputs).
-
-## Quick reference
-
-| File | Role |
-| --- | --- |
-| `claim_ledger.yaml` | Source-backed numeric and artifact claims for evidence validation |
-
-Generated analysis outputs belong under `output/` during pipeline runs, not here.
-
-Schema and edit protocol: [`AGENTS.md`](AGENTS.md).
+Versioned inputs only. [`claim_ledger.yaml`](claim_ledger.yaml) registers
+sourced numeric claims. Pipeline outputs must not be committed here (see
+`output/`, gitignored).

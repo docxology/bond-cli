@@ -1,22 +1,19 @@
-authors:
-- affiliation: Active Inference Institute
-  family-names: Friedman
-  given-names: Daniel Ari
-  orcid: 0000-0001-6232-9096
 cff-version: 1.2.0
-date-released: '2026-07-10'
-doi: 10.5281/zenodo.20417136
-keywords:
-- optimization algorithms
-- gradient descent
-- convergence analysis
-- numerical methods
-- mathematical programming
-- reproducible research
-- infrastructure automation
+message: "If you use PROJECT BOND bond-cli, please cite it as below."
+title: "BOND-CLI: The Unified Terminal Front Door for the PROJECT BOND Suite"
+abstract: >-
+  The Layer-4 terminal front door (THE FRONT DOOR) of the PROJECT BOND suite:
+  film brief/recon/plan/execute/debrief, orchestrator missions, suite status,
+  and gadgets, delegating to the four built layers.
+authors:
+  - family-names: Friedman
+    given-names: Daniel Ari
+    orcid: "https://orcid.org/0000-0001-6232-9096"
+version: "3.0.0"
+date-released: "2026-08-04"
 license: MIT
-message: If you use this software, please cite it using the metadata from this file.
-repository-code: https://github.com/docxology/bond-cli
-title: Convergence Analysis of Gradient Descent Optimization
-type: software
-version: 2.5.2
+keywords:
+  - project-bond
+  - front-door
+  - command-line-interface
+  - mission-orchestration

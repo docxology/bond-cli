@@ -3,10 +3,10 @@
 .pytest_cache/
 __pycache__/
 *.pyc
-.benchmarks/
+*.egg-info/
 
-# Egg-info from local installs (any location — guards against renamed-fork drift).
-**/*.egg-info/
-
-# Project-local virtualenvs (root .venv is shared)
+# Project-local virtualenvs
 .venv/
+
+# Regenerable artifacts
+output/

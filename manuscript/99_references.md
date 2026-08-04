@@ -1,10 +1,7 @@
-# References {#sec:references}
+# References
 
-Bibliography lives in [`manuscript/references.bib`](references.bib) and is read by Pandoc during PDF render. The build pipeline invokes Pandoc with `--natbib`, so every `[@key]` citation in the manuscript is rewritten to the appropriate `\cite{}`/`\citep{}`/`\citet{}` LaTeX command and resolved against the bib file.
-
-To validate that `references.bib` is syntactically clean and contains the required fields per entry type:
-
-```bash
-uv run python -m infrastructure.reference.citation.cli validate \
-    projects/working/bond/bond-cli/manuscript/references.bib --strict
-```
+- bond-api — THE PROTOCOL: the frozen `MissionProvider` contract, discovery, and registries (in-repo, `projects/working/bond/bond-api`).
+- bond-coordinator — MISSION CONTROL: registry, mission ledger, and suite status (in-repo, `projects/working/bond/bond-coordinator`).
+- bond-orchestrator — DAG 00: the multi-package mission runner with checkpoint/resume and provenance (in-repo, `projects/working/bond/bond-orchestrator`).
+- bond-utilities — Q-BRANCH: ciphers, codenames, clocks, randomness, mission IO (in-repo, `projects/working/bond/bond-utilities`).
+- argparse — https://docs.python.org/3/library/argparse.html (command-line argument parsing, standard library).

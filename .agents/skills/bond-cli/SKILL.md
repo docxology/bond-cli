@@ -1,53 +1,68 @@
 ---
 name: bond-cli
-description: Code-centric optimization research exemplar — gradient descent, convergence analysis, automated figures, dashboard, and publication-quality PDF.
-version: 0.1.0
-author: docxology
+description: Maintain the PROJECT BOND terminal front door (THE FRONT DOOR): dispatch, delegation, exit codes.
+version: 1.0.0
+author: activeinference.institute
 license: MIT
-tags: [exemplar, code, optimization, thin-orchestrator]
+tags: [project-bond, front-door, thin-orchestrator, mission-orchestration]
 ---
 
 # bond-cli
 
-Project-scoped skill for the in-repo exemplar at
-`projects/working/bond/bond-cli/`. Load this when working inside the project.
+Project-scoped skill for the in-repo terminal front door at
+`projects/working/bond/bond-cli/` (PROJECT BOND Layer 4 · codename **THE FRONT
+DOOR**). Load when working inside the package.
 
 ## When to Use
 
-- Working inside the `bond-cli` exemplar — running scripts, editing source,
-  or regenerating outputs.
-- Forking this exemplar as the starting scaffold for a new research project.
-- Validating that the exemplar's contracts (thin-orchestrator, layer boundaries,
-  no-mocks testing) still hold after changes.
+- Maintaining `bond-cli`: the verb-first `bond` CLI (`list`, `brief`, `recon`,
+  `plan`, `execute`, `debrief`, `run`, `status`, `gadgets`).
+- Verifying the package against the shared guardrail preamble (≥90% coverage,
+  no mocks, thin orchestrators, delegation, no lineage residue).
 
 ## Quick Reference
 
 ```bash
-# From the repository root
-uv run pytest projects/working/bond/bond-cli/tests --cov=projects/working/bond/bond-cli/src --cov-fail-under=90
-uv run python scripts/pipeline/stage_02_analysis.py --project templates/bond-cli
-uv run python scripts/pipeline/stage_03_render.py --project templates/bond-cli
-uv run python scripts/pipeline/stage_04_validate.py --project templates/bond-cli
-uv run python scripts/pipeline/stage_05_copy.py --project templates/bond-cli
+cd projects/working/bond/bond-cli
+uv sync --extra dev
+uv run pytest tests/ --cov=src --cov-fail-under=90
+
+# ops-style verification
+uv run python scripts/bond.py list
+uv run python scripts/bond.py debrief goldfinger
+uv run python scripts/bond.py run OPERATION_SINGLET
+uv run python scripts/bond.py status
+uv run python scripts/bond.py gadgets skyfall
 ```
+
+## Architecture
+
+- Depends on the FOUR built layers via `[tool.uv.sources]` path sources:
+  bond-api (protocol/discovery/registry), bond-coordinator (registry/status),
+  bond-orchestrator (missions/runner/adapters), bond-utilities (transitive).
+- `src/bond_cli/dispatch.py` — argparse surface + delegation; no business logic.
+- `src/bond_cli/manuscript_variables.py` — `{{TOKEN}}` map.
+- `scripts/bond.py` — thin bootstrap; console script `bond` is identical.
 
 ## Pitfalls
 
-- **Keep scripts thin.** Business logic belongs in `src/` or shared
-  `infrastructure/`, not in `scripts/`.
-- **No mocks.** All tests must use real data, real files, and real
-  computation.
-- **Outputs are disposable.** Never hand-edit `output/` — regenerate from
-  source and config.
-- **Keep tracked benchmarks deterministic.** Serialize reproducible inputs,
-  objective values, and checks; keep wall-clock timing as a runtime-only
-  diagnostic.
-- **Run from the repo root.** Commands assume the template monorepo root
-  as working directory unless the child `AGENTS.md` states otherwise.
+- **Delegate, don't duplicate.** The front door implements no mission logic;
+  route to the layers.
+- **No mocks.** Use real film providers — reference `sable` (numpy-free, fast)
+  for the lifecycle, a real fleet film (`skyfall` has `register_gadgets`) for
+  gadgets; real subprocess for `scripts/bond.py` smoke.
+- **Search paths must exist.** `bond_api` validates that every provided search
+  path is a directory — filter `_film_search_paths` to existing dirs (sable
+  lives only under `bond-api/films`).
+- **Exit codes:** 0 success, 1 command failure, 2 argparse misuse.
+- **Lineage / no-mock self-referential greps:** bracket-split or reword so your
+  own docs and tests can't trip the fleet gates.
+- **mypy:** the four layers ship without `py.typed` — the
+  `[[tool.mypy.overrides]]` for `bond_*.*` silences import-untyped.
 
 ## Cross-refs
 
-- Project contract: [`AGENTS.md`](../../../AGENTS.md)
-- README: [`README.md`](../../../README.md)
-- TODO: [`TODO.md`](../../../TODO.md)
-- Exemplar roster: [`projects/AGENTS.md`](../../../../../AGENTS.md)
+- Shared guardrail preamble + suite map:
+  `software-development/bond-suite-package-development` skill.
+- FROZEN protocol: `bond-api` (`docs/protocol.md` / `bond-api-phase1` reference).
+- Official CLI + docs: `scripts/`, `docs/`.

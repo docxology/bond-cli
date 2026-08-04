@@ -1,25 +1,21 @@
-conditions:
-  - name: conservative_step
-    role: reference
-    description: "Stable gradient-descent step below the spectral bound."
-  - name: near_optimal_step
-    role: proposed
-    description: "Template-recommended step near the stable convergence region."
-  - name: aggressive_step
-    role: variant
-    description: "Stress condition near or above the stability boundary."
-metrics:
-  primary:
-    name: objective_value
-    direction: minimize
-protocol: "Run the deterministic quadratic optimization sweep with identical initialization, seeds, tolerance, and iteration cap across all declared step-size conditions."
-expected_figures:
-  - fig:convergence_plot
-  - fig:performance_benchmark
-  - fig:step_size_sensitivity
-expected_tables:
-  - tbl:optimization_results
-baselines:
-  - conservative_step
-ablations:
-  - aggressive_step
+# Advisory experiment plan for bond-cli (advisory only; no autonomous execution).
+commands:
+  - name: list
+    delegate: bond_coordinator.registry
+    expected: "27 film rows (rank, slug, title, year, codename)"
+  - name: brief/recon/plan/execute/debrief
+    delegate: bond_api discovery + provider
+    expected: "one protocol stage of a real film provider"
+  - name: run
+    delegate: bond_orchestrator runner
+    expected: "consolidated debrief; exit 0 iff all verdicts pass"
+  - name: status
+    delegate: bond_coordinator.status
+    expected: "suite snapshot (counts, coverage, blocked)"
+  - name: gadgets
+    delegate: bond_api.registry.GadgetRegistry
+    expected: "gadget payload names per film"
+exit_codes:
+  success: 0
+  command_failure: 1
+  argparse_misuse: 2

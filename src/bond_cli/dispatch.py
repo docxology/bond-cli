@@ -46,6 +46,11 @@ DEFAULT_RECON_GOAL = "general reconnaissance"
 #: Suite root: the parent of every package dir, and the fleet workspace root.
 BOND_ROOT = Path(__file__).resolve().parents[3]
 
+#: Aggregate gate manifest (written by the fleet gate runner): slug -> measured
+#: gate result.  ``bond status`` reads this so the front door reflects REAL
+#: measured fleet state (coverage + readiness), not a pre-mission ledger.
+GATE_MANIFEST = BOND_ROOT / "output" / "aggregate" / "gate_manifest.json"
+
 #: The ordered command registry (drives help + manuscript COMMANDS token).
 COMMANDS: tuple[str, ...] = (
     "list",
@@ -232,12 +237,47 @@ def _resolve_provider(package_id: str) -> Any:
         return get_provider(package_id)
 
 
+def _measured_roster() -> tuple[Any, ...] | None:
+    """Return the roster reconciled against the aggregate gate manifest.
+
+    Each film with a measured gate row gets its REAL status (``ready`` when the
+    gate passed, ``red`` when it failed) and its measured coverage %.  Returns
+    ``None`` when the manifest is absent (fresh/unknown fleet state).
+    """
+    if not GATE_MANIFEST.is_file():
+        return None
+    from dataclasses import replace
+
+    from bond_coordinator.registry import ROSTER
+    from bond_coordinator.types import PackageStatus
+
+    try:
+        manifest = json.loads(GATE_MANIFEST.read_text())
+        rows = {p["package"]: p for p in manifest.get("packages", [])}
+    except (OSError, ValueError, KeyError):
+        return None
+
+    reconciled: list[Any] = []
+    for record in ROSTER:
+        row = rows.get(record.slug)
+        if row is None:
+            reconciled.append(record)
+            continue
+        status = PackageStatus.READY if row.get("rc") == 0 else PackageStatus.RED
+        coverage: float | None = row.get("coverage")
+        reconciled.append(
+            replace(record, status=status, coverage=coverage if coverage else None)
+        )
+    return tuple(reconciled)
+
+
 def cmd_status(args: argparse.Namespace) -> int:
-    """``bond status`` — coordinator suite-status snapshot."""
+    """``bond status`` — coordinator suite-status snapshot (measured when known)."""
     del args
     from bond_coordinator.status import build_status
 
-    status = build_status()  # fresh ledger: the honest pre-mission state
+    roster = _measured_roster()
+    status = build_status(roster=roster) if roster is not None else build_status()
     print(f"{SUITE_NAME} suite status ({CLI_CODENAME})")
     print(f"total films: {status.total}")
     for state, count in status.counts_by_status.items():
@@ -258,9 +298,14 @@ def cmd_status(args: argparse.Namespace) -> int:
 def register_film_gadgets(registry: Any, slug: str) -> int:
     """Import ``slug``'s mission module and register its gadgets (real discovery).
 
-    Returns the number of gadgets newly registered; a film without a
-    ``register_gadgets`` entry, or one that fails to import, contributes 0
-    (bulk gadget discovery never crashes the CLI).
+    Tolerates every fleet convention: a ``register_gadgets(registry)`` hook or
+    a zero-arg ``register_gadgets()`` hook, a module-level ``GADGETS`` registry
+    (bond-api GadgetRegistry / plain dict / callable factory), and gadgets
+    bound only when ``MissionProvider()`` is constructed.  A film with nothing
+    to offer, or one that fails to import, contributes 0 (bulk gadget
+    discovery never crashes the CLI).
+
+    Returns the number of gadgets newly registered.
     """
     inserted = [entry for entry in _film_search_paths(slug) if entry not in sys.path]
     for entry in inserted:
@@ -270,11 +315,42 @@ def register_film_gadgets(registry: Any, slug: str) -> int:
             module = importlib.import_module(f"{slug}.mission")
         except Exception:
             return 0
-        register = getattr(module, "register_gadgets", None)
-        if not callable(register):
-            return 0
         before = len(registry.gadgets_for(slug))
-        register(registry)
+
+        # 1) the register_gadgets hook exists in either arity.
+        register = getattr(module, "register_gadgets", None)
+        if callable(register):
+            try:
+                register(registry)
+            except TypeError:
+                register()  # zero-arg hook: populates module-level GADGETS
+
+        # 2) merge the module-level GADGETS source regardless of hook style.
+        gadgets = getattr(module, "GADGETS", None)
+        provider_cls = getattr(module, "MissionProvider", None)
+        if callable(gadgets) and not hasattr(gadgets, "items"):
+            gadgets = gadgets()  # callable factory returning the registry
+        shelf_empty = (
+            not (hasattr(gadgets, "gadgets_for") and gadgets.gadgets_for(slug))
+            if gadgets is not None
+            else True
+        )
+        if shelf_empty and isinstance(provider_cls, type):
+            provider_cls()  # provider-bound convention registers at construction
+            gadgets = getattr(module, "GADGETS", None) or gadgets
+        if gadgets is not None:
+            if callable(gadgets) and not hasattr(gadgets, "items"):
+                gadgets = gadgets()  # callable factory returning the registry
+            if hasattr(gadgets, "gadgets_for") and hasattr(gadgets, "lookup"):
+                registry.register(
+                    slug,
+                    {
+                        name: gadgets.lookup(slug, name)
+                        for name in gadgets.gadgets_for(slug)
+                    },
+                )
+            elif isinstance(gadgets, dict):
+                registry.register(slug, gadgets)
         return len(registry.gadgets_for(slug)) - before
     finally:
         for entry in inserted:

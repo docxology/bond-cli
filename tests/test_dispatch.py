@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from bond_cli import dispatch
@@ -193,6 +195,75 @@ def test_register_gadgets_real():
     added = dispatch.register_film_gadgets(registry, "skyfall")
     assert added > 0
     assert registry.gadgets_for("skyfall")
+
+
+def test_register_gadgets_provider_bound_construction(capsys):
+    """goldfinger binds gadgets in MissionProvider.__init__ (empty GADGETS at import).
+
+    register_film_gadgets must construct the provider and then harvest the
+    populated module-level registry — the deep reason the whole-fleet sweep
+    works even for provider-bound films.
+    """
+    from bond_api.registry import GadgetRegistry
+
+    registry = GadgetRegistry()
+    added = dispatch.register_film_gadgets(registry, "goldfinger")
+    assert added > 0
+    names = registry.gadgets_for("goldfinger")
+    assert "market_corner" in names
+
+    # And the CLI surfaces them.
+    code, out, _ = _run(capsys, ["gadgets", "goldfinger"])
+    assert code == 0
+    assert "market_corner" in out and "laser_threat" in out
+
+
+def test_status_measured_from_gate_manifest(capsys, monkeypatch, tmp_path):
+    """bond status reflects REAL measured fleet state when the gate manifest exists."""
+    from bond_coordinator.registry import ROSTER
+
+    manifest = tmp_path / "gate_manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "packages": [
+                    {
+                        "package": r.slug,
+                        "rc": 0,
+                        "passed": 1,
+                        "coverage": round(95 + (i % 5), 1),
+                    }
+                    for i, r in enumerate(ROSTER)
+                ]
+            }
+        )
+    )
+    monkeypatch.setattr(dispatch, "GATE_MANIFEST", manifest)
+
+    code, out, _ = _run(capsys, ["status"])
+    assert code == 0
+    assert "ready: 27" in out
+    assert "measured)" in out
+    # Coverage is computed from the reconciled roster, never N/A now.
+    assert "mean=" in out and "N/A" not in out
+
+
+def test_status_falls_back_without_manifest(capsys, monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatch, "GATE_MANIFEST", tmp_path / "absent.json")
+    code, out, _ = _run(capsys, ["status"])
+    assert code == 0
+    assert "total films: 27" in out
+    assert "scaffolded: 27" in out
+    assert "mean=N/A" in out
+
+
+def test_status_malformed_manifest_falls_back(capsys, monkeypatch, tmp_path):
+    bad = tmp_path / "gate_manifest.json"
+    bad.write_text("not json")
+    monkeypatch.setattr(dispatch, "GATE_MANIFEST", bad)
+    code, out, _ = _run(capsys, ["status"])
+    assert code == 0
+    assert "total films: 27" in out
 
 
 # --------------------------------------------------------------------------- #

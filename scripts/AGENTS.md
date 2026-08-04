@@ -10,4 +10,6 @@ Run (from the package root):
 uv run python scripts/bond.py list
 uv run python scripts/bond.py debrief goldfinger
 uv run python scripts/bond.py run OPERATION_OMNIBUS
+uv run python scripts/bond.py missions
+uv run python scripts/bond.py whois goldfinger
 ```

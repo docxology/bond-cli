@@ -4,5 +4,6 @@
 - **Entry points.** Console script `bond` (`bond = "bond_cli.dispatch:main"`) and the thin `scripts/bond.py` bootstrap — identical dispatch.
 - **Film discovery.** `bond_api.discovery.load_provider` over `<slug>/src` (fleet) and `bond-api/films` (reference), FROZEN contract.
 - **Mission execution.** `bond_orchestrator.runner.MissionRunner` over real film adapters with deterministic fallback.
+- **Output layer.** `src/bond_cli/table.py::format_table` for color-safe aligned tables (no ANSI); JSON output is key-sorted per RFC 8259 and never embeds wall-clock values.
 - **Toolchain** (dev extras): `pytest`, `pytest-cov`, `ruff`, `mypy`, `types-PyYAML`.
 - **Tests.** Real subprocess CLI smoke against the real packages (`python scripts/bond.py list`, etc.) plus in-process dispatch tests against deterministic film providers; zero mocks; ≥90% line+branch coverage on `src/`.

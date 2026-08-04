@@ -20,13 +20,21 @@ stubbed facsimile.
   - `run` a canned mission over real film adapters, plus a fallback path when
     a real film cannot be bound (real `FilmProviderError`).
   - `status` summary and the blocked-packages branch (real `build_status` over
-    a custom roster with a RED package).
+    a custom roster with a RED package), both plain and `--json`, measured and
+    unmeasured.
+  - `missions` / `whois` / `roster-export` and the `--json` variants of
+    `list`/`status`, with measured-gate reconciliation verified through real
+    tmp gate manifests.
   - `gadgets` for a real registering film (`skyfall`), a non-registering film
-    (`sable`), and the whole-fleet path; best-effort gadget discovery.
+    (`sable`), and every registration convention via real tmp film packages
+    (zero-arg hook, module `GADGETS` dict, callable factory, bond-api
+    `GadgetRegistry`, provider-bound).
   - Exit-code paths: unknown film → 1, unknown mission → 2, argparse misuse → 2.
-- **Subprocess smoke** (`scripts/bond.py list`, `status`, and
-  `z_generate_manuscript_variables.py`) via `sys.executable` with
-  `cwd=project_root`, exercising the real entry points.
+- **Color-safe tables** (`src/bond_cli/table.py`) — alignment and
+  no-ANSI guarantees asserted directly.
+- **Subprocess smoke** (`scripts/bond.py list`, `status`, `missions`, `whois`,
+  `roster-export`, and `z_generate_manuscript_variables.py`) via
+  `sys.executable` with `cwd=project_root`, exercising the real entry points.
 
 ## Coverage
 

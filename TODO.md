@@ -13,6 +13,20 @@ DOOR). No closed-out archaeology; keep it pointed.
 - [x] Deterministic zero-mock suite (real film providers + subprocess smoke) at
       ≥90% coverage.
 
+## Phase-4 scope (deep improvement — this build)
+
+- [x] New commands: `missions` (canned orchestrator missions + chains),
+      `whois <film>` (registry identity + built-on-disk + measured gate state),
+      `roster-export` (fleet roster as key-sorted JSON, stdout or `--output`).
+- [x] Richer output: `--json` on `list`/`status`/`missions`/`whois`;
+      `src/bond_cli/table.py::format_table` color-safe aligned tables (no ANSI).
+- [x] `status` keeps reading the measured gate manifest
+      (`output/aggregate/gate_manifest.json`); `gadgets` keeps tolerating every
+      fleet registration convention (hook arities, module GADGETS dict/factory,
+      provider-bound, bond-api registry) — now proven by tmp-package tests.
+- [x] Zero-mock suite extended (65 tests) with tmp fake film packages for
+      gadget conventions; manuscript + docs updated.
+
 ## Integration points / notes
 
 - **Real-film mission binding.** `bond run` binds each mission package to its

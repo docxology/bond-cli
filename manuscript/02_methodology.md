@@ -13,8 +13,32 @@ Each handler runs exactly one delegated call. `load_film(slug)` uses the FROZEN 
 - **`list`** — reads the coordinator registry `ROSTER` and prints all {{FILM_COUNT}} films in canonical order (rank, slug, title, year, codename).
 - **`brief`/`recon`/`plan`/`execute`/`debrief`** — load the named film's `MissionProvider` and call the corresponding protocol stage. `debrief` runs the full five-stage flow through `bond_api.protocol.run_mission`. `execute`/`debrief` exit 0 iff the outcome reports success.
 - **`run`** — resolves a canned mission by name from `bond_orchestrator.missions`, binds each package id to its real film provider via `film_providers.load_film_providers` (falling back to the orchestrator's built-in deterministic provider when a film is not built), executes it with the `MissionRunner`, prints the consolidated debrief, and exits 0 iff every verdict passes.
-- **`status`** — calls `bond_coordinator.status.build_status` and prints the deterministic suite snapshot (counts by status, coverage summary, blocked packages).
-- **`gadgets`** — builds a `bond_api.GadgetRegistry` by discovering each film's `register_gadgets` entry and prints the registered gadget names (for one film or the whole fleet).
+- **`status`** — reads the aggregate gate manifest written by the fleet gate
+  runner (`output/aggregate/gate_manifest.json`) when present, reconciles each
+  film's measured status/coverage onto the coordinator registry, and renders
+  the suite snapshot (counts by status, coverage summary, blocked packages).
+  Without a manifest it falls back to the honest pre-measurement registry.
+- **`gadgets`** — builds a `bond_api.GadgetRegistry` by discovering each
+  film's gadgets across every fleet convention (`register_gadgets(registry)`,
+  zero-arg `register_gadgets()`, module-level `GADGETS` dict or factory, or
+  provider-bound registration at construction) and prints the registered
+  gadget names (for one film or the whole fleet).
+- **`missions`** — lists the orchestrator's canned missions and each mission's
+  package chain.
+- **`whois <film>`** — prints a film's registry identity (rank, film, year,
+  codename, status, coverage, concepts), whether its provider module is built
+  on disk, and its measured gate state when the manifest exists.
+- **`roster-export`** — exports the fleet roster as key-sorted JSON (the
+  measured roster when the manifest exists, else the plain registry), to
+  stdout or to a file with `--output`.
+
+## JSON output and color-safe tables
+
+`list`, `status`, `missions`, and `whois` accept `--json` for
+machine-readable output; `roster-export` is JSON by construction. Human tables
+are rendered by `src/bond_cli/table.py::format_table` with fixed-width column
+padding only — never ANSI escape codes — so output is byte-identical in a
+terminal, a pipe, a log file, and test capture (the color-safe contract).
 
 ## Determinism and exit codes
 

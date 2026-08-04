@@ -7,7 +7,8 @@ map. The package deliberately owns **no mission logic**.
 ## Modules
 
 - `bond_cli/dispatch.py` — `main(argv) -> int`, command handlers, `load_film`,
-  `register_film_gadgets`, `_resolve_provider`.
+  `register_film_gadgets`, `_resolve_provider`, `_measured_roster`.
+- `bond_cli/table.py` — color-safe aligned table rendering (no ANSI).
 - `bond_cli/manuscript_variables.py` — `{{TOKEN}}` map from
   `manuscript/config.yaml` + coordinator registry.
 

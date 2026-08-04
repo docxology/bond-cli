@@ -14,15 +14,21 @@ their logic.
 
 | Command | Delegates to | Action |
 |---|---|---|
-| `bond list` | `bond_coordinator.registry` | print all 27 films (rank, slug, title, year, codename) |
+| `bond list [--json]` | `bond_coordinator.registry` | print all 27 films (rank, slug, title, year, codename) |
 | `bond brief <film>` | `bond_api` provider | print a film's `MissionBrief` |
 | `bond recon <film> [goal]` | `bond_api` provider | print a film's recon findings |
 | `bond plan <film>` | `bond_api` provider | print a film's `MissionPlan` steps |
 | `bond execute <film>` | `bond_api` provider | execute a plan, print the `MissionOutcome` + provenance |
 | `bond debrief <film>` | `bond_api` provider (`run_mission`) | run the full five-stage flow, print the `Debrief` |
 | `bond run <mission>` | `bond_orchestrator` | run a canned mission end-to-end, consolidated debrief |
-| `bond status` | `bond_coordinator.status` | suite-status snapshot (counts, coverage, blocked) |
+| `bond status [--json]` | `bond_coordinator.status` + gate manifest | suite-status snapshot (measured coverage when gated) |
 | `bond gadgets [film]` | `bond_api.registry.GadgetRegistry` | list gadget-payload names (one film or the fleet) |
+| `bond missions [--json]` | `bond_orchestrator.missions` | list canned missions + package chains |
+| `bond whois <film> [--json]` | `bond_coordinator.registry` + gate manifest | registry identity, built-on-disk, measured state |
+| `bond roster-export [--output PATH]` | `bond_coordinator.registry` + gate manifest | fleet roster as key-sorted JSON |
+
+`list`/`status`/`missions`/`whois` accept `--json`; `roster-export` is JSON by
+construction. Human tables are color-safe (fixed-width alignment, no ANSI).
 
 ## Quick usage
 
@@ -40,9 +46,12 @@ uv run python scripts/bond.py debrief goldfinger
 # Run a canned orchestrator mission
 uv run python scripts/bond.py run OPERATION_SINGLET
 
-# Suite status + gadget registry
+# Suite status + gadget registry + deepened surface
 uv run python scripts/bond.py status
 uv run python scripts/bond.py gadgets skyfall
+uv run python scripts/bond.py missions
+uv run python scripts/bond.py whois goldfinger
+uv run python scripts/bond.py roster-export --output /tmp/roster.json
 
 # The installed console script is identical
 uv run bond list
@@ -68,6 +77,7 @@ lifecycle, a real fleet film for gadgets/missions) plus subprocess smoke of
 ## Structure
 
 - `src/bond_cli/dispatch.py` — argparse front door + delegation (all logic lives in the layers)
+- `src/bond_cli/table.py` — color-safe aligned table rendering (no ANSI)
 - `src/bond_cli/manuscript_variables.py` — `{{TOKEN}}` map from config + registry
 - `scripts/bond.py` — thin sys.path bootstrap wrapper
 - `scripts/z_generate_manuscript_variables.py` — manuscript token hydration

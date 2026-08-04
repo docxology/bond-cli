@@ -15,6 +15,14 @@ Commands (verb-first; the film/argument comes after the verb)::
     bond run <mission>            run a canned orchestrator mission
     bond status                   suite status snapshot (coordinator)
     bond gadgets [film]           gadget registry lookup (bond-api)
+    bond missions                 canned orchestrator missions
+    bond whois <film>             registry + measured identity of a film
+    bond roster-export            fleet roster as JSON (--output writes a file)
+
+``list``, ``status``, ``missions`` and ``whois`` accept ``--json`` for
+machine-readable output; ``roster-export`` is JSON by construction. Human
+tables are rendered color-safe by :mod:`bond_cli.table` (fixed-width
+alignment, never ANSI).
 
 Exit codes: ``0`` on success, ``1`` on a command failure (unknown film, a
 non-passing execute/debrief, failed run), ``2`` on argparse misuse.
@@ -33,6 +41,8 @@ import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
+
+from .table import format_table
 
 #: Mission codename of this package.
 CLI_CODENAME = "THE FRONT DOOR"
@@ -62,6 +72,9 @@ COMMANDS: tuple[str, ...] = (
     "run",
     "status",
     "gadgets",
+    "missions",
+    "whois",
+    "roster-export",
 )
 
 
@@ -132,10 +145,27 @@ def _fmt_value(value: Any) -> str:
 
 
 def cmd_list(args: argparse.Namespace) -> int:
-    """``bond list`` — all 27 films from the coordinator registry."""
-    del args
+    """``bond list [--json]`` — all 27 films from the coordinator registry."""
     from bond_coordinator.registry import ROSTER
 
+    if args.json:
+        print(
+            json.dumps(
+                [
+                    {
+                        "rank": rec.rank,
+                        "slug": rec.slug,
+                        "film": rec.film,
+                        "year": rec.year,
+                        "codename": rec.codename,
+                    }
+                    for rec in ROSTER
+                ],
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0
     for rec in ROSTER:
         print(f"{rec.rank:>2}  {rec.slug:<28} {rec.film} ({rec.year})  {rec.codename}")
     return 0
@@ -272,12 +302,41 @@ def _measured_roster() -> tuple[Any, ...] | None:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    """``bond status`` — coordinator suite-status snapshot (measured when known)."""
-    del args
+    """``bond status [--json]`` — suite-status snapshot (measured when known)."""
     from bond_coordinator.status import build_status
 
     roster = _measured_roster()
     status = build_status(roster=roster) if roster is not None else build_status()
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "manifest": "bond-cli-status",
+                    "schema_version": 1,
+                    "total": status.total,
+                    "counts_by_status": {
+                        state.value: count
+                        for state, count in status.counts_by_status.items()
+                    },
+                    "coverage": {
+                        "known": status.coverage.known,
+                        "unknown": status.coverage.unknown,
+                        "mean": status.coverage.mean,
+                        "minimum": status.coverage.minimum,
+                        "maximum": status.coverage.maximum,
+                        "at_or_above_90": status.coverage.at_or_above_floor,
+                    },
+                    "blocked": [
+                        {"slug": blocked.slug, "reason": blocked.reason}
+                        for blocked in status.blocked_packages
+                    ],
+                    "measured": roster is not None,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0
     print(f"{SUITE_NAME} suite status ({CLI_CODENAME})")
     print(f"total films: {status.total}")
     for state, count in status.counts_by_status.items():
@@ -292,6 +351,138 @@ def cmd_status(args: argparse.Namespace) -> int:
         print("blocked:")
         for blocked in status.blocked_packages:
             print(f"  - {blocked.slug}: {blocked.reason}")
+    return 0
+
+
+def cmd_missions(args: argparse.Namespace) -> int:
+    """``bond missions [--json]`` — the orchestrator's canned missions."""
+    from bond_orchestrator.missions import MISSION_NAMES, MISSIONS
+
+    if args.json:
+        print(
+            json.dumps(
+                [
+                    {
+                        "name": name,
+                        "packages": list(MISSIONS[name].package_ids()),
+                        "chain": " → ".join(MISSIONS[name].package_ids()),
+                    }
+                    for name in MISSION_NAMES
+                ],
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0
+    print(
+        format_table(
+            ["MISSION", "PACKAGES"],
+            [
+                [name, " → ".join(MISSIONS[name].package_ids())]
+                for name in MISSION_NAMES
+            ],
+        )
+    )
+    return 0
+
+
+def _film_built(slug: str) -> bool:
+    """Whether the film's provider module exists on disk (fleet or reference)."""
+    return (BOND_ROOT / slug / "src" / slug / "mission.py").is_file() or (
+        BOND_ROOT / "bond-api" / "films" / slug / "mission.py"
+    ).is_file()
+
+
+def cmd_whois(args: argparse.Namespace) -> int:
+    """``bond whois <film> [--json]`` — registry + measured identity of a film."""
+    from bond_coordinator.registry import get_package
+
+    try:
+        record = get_package(args.film)
+    except KeyError as exc:
+        raise CliError(f"no registry record for film {args.film!r}: {exc}") from exc
+
+    measured: dict[str, Any] | None = None
+    roster = _measured_roster()
+    if roster is not None:
+        for candidate in roster:
+            if candidate.slug == args.film:
+                measured = {
+                    "status": candidate.status.value,
+                    "coverage": candidate.coverage,
+                }
+                break
+
+    payload = {
+        "slug": record.slug,
+        "rank": record.rank,
+        "film": record.film,
+        "year": record.year,
+        "codename": record.codename,
+        "status": record.status.value,
+        "coverage": record.coverage,
+        "concepts": list(record.concepts),
+        "built": _film_built(record.slug),
+        "measured": measured,
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
+
+    print(
+        format_table(
+            ["FIELD", "VALUE"], [[key, value] for key, value in payload.items()]
+        )
+    )
+    return 0
+
+
+def _roster_payload(roster: tuple[Any, ...]) -> list[dict[str, Any]]:
+    """JSON-safe roster rows (used by ``roster-export``)."""
+    return [
+        {
+            "rank": record.rank,
+            "slug": record.slug,
+            "film": record.film,
+            "year": record.year,
+            "codename": record.codename,
+            "status": record.status.value,
+            "coverage": record.coverage,
+            "concepts": list(record.concepts),
+        }
+        for record in roster
+    ]
+
+
+def cmd_roster_export(args: argparse.Namespace) -> int:
+    """``bond roster-export [--output PATH]`` — the fleet roster as JSON.
+
+    Exports the reconciled roster (measured status/coverage from the gate
+    manifest) when the manifest exists, else the plain registry. JSON is
+    key-sorted and deterministic.
+    """
+    roster = _measured_roster()
+    if roster is None:
+        from bond_coordinator.registry import ROSTER
+
+        roster = ROSTER
+    payload = json.dumps(
+        {
+            "manifest": "bond-cli-roster-export",
+            "schema_version": 1,
+            "total": len(roster),
+            "packages": _roster_payload(roster),
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    if args.output:
+        target = Path(args.output)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(payload + "\n", encoding="utf-8")
+        print(target)
+        return 0
+    print(payload)
     return 0
 
 
@@ -411,7 +602,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("list", help="list all 27 films from the registry")
+    list_parser = sub.add_parser("list", help="list all 27 films from the registry")
+    list_parser.add_argument("--json", action="store_true", help="emit JSON rows")
 
     for verb in ("brief", "recon", "plan", "execute", "debrief"):
         p = sub.add_parser(verb, help=f"{verb} a film's protocol stage")
@@ -422,10 +614,23 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="run a canned orchestrator mission")
     run.add_argument("mission")
 
-    sub.add_parser("status", help="suite status snapshot")
+    status_parser = sub.add_parser("status", help="suite status snapshot")
+    status_parser.add_argument("--json", action="store_true", help="emit JSON snapshot")
 
     gadgets = sub.add_parser("gadgets", help="gadget registry lookup")
     gadgets.add_argument("film", nargs="?", default=None)
+
+    missions = sub.add_parser("missions", help="list canned orchestrator missions")
+    missions.add_argument("--json", action="store_true", help="emit JSON rows")
+
+    whois = sub.add_parser("whois", help="registry + measured identity of a film")
+    whois.add_argument("film")
+    whois.add_argument("--json", action="store_true", help="emit JSON payload")
+
+    export = sub.add_parser("roster-export", help="fleet roster as JSON")
+    export.add_argument(
+        "--output", default=None, help="write JSON to PATH instead of stdout"
+    )
 
     return parser
 
@@ -441,6 +646,9 @@ def _handlers() -> dict[str, Callable[[argparse.Namespace], int]]:
         "run": cmd_run,
         "status": cmd_status,
         "gadgets": cmd_gadgets,
+        "missions": cmd_missions,
+        "whois": cmd_whois,
+        "roster-export": cmd_roster_export,
     }
 
 

@@ -156,7 +156,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "bond-utilities"
-version = "0.1.0"
+version = "0.3.0"
 source = { directory = "../bond-utilities" }
 dependencies = [
     { name = "matplotlib" },

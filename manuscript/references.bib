@@ -1,12 +1,70 @@
-@misc{argparse,
-  title        = {argparse — Parser for command-line options, arguments and sub-commands},
-  author       = {Python Software Foundation},
-  year         = {2026},
-  howpublished = {\url{https://docs.python.org/3/library/argparse.html}},
+% References for bond-cli (THE FRONT DOOR).
+% Every entry below is a real, checkable source for a design decision this
+% package actually implements: the argparse sub-command model, Unix exit-code
+% and plain-output conventions, the JSON interchange format used by --json and
+% roster-export, and the versioning scheme in pyproject.toml / config.yaml.
+
+@misc{bethard2009argparse,
+  title        = {PEP 389 — argparse: New Command Line Parsing Module},
+  author       = {Bethard, Steven},
+  year         = {2009},
+  howpublished = {Python Enhancement Proposal 389},
+  url          = {https://peps.python.org/pep-0389/},
+  note         = {The proposal that added argparse to the Python standard
+                  library, including the sub-command (sub-parser) model this
+                  CLI's verb-first grammar uses.},
 }
-@misc{rfc8259,
-  title        = {RFC 8259 — The JavaScript Object Notation (JSON) Data Interchange Format},
-  author       = {Bray, Tim},
-  year         = {2017},
-  howpublished = {\url{https://www.rfc-editor.org/rfc/rfc8259}},
+
+@misc{pythonargparse,
+  title        = {argparse — Parser for command-line options, arguments and sub-commands},
+  author       = {{Python Software Foundation}},
+  howpublished = {The Python Standard Library documentation},
+  url          = {https://docs.python.org/3/library/argparse.html},
+  note         = {Reference documentation for the parser API used by
+                  \texttt{bond\_cli.dispatch.build\_parser}, including the
+                  exit status 2 on usage error.},
+}
+
+@techreport{rfc8259,
+  title       = {The JavaScript Object Notation (JSON) Data Interchange Format},
+  author      = {Bray, Tim},
+  editor      = {Bray, Tim},
+  institution = {Internet Engineering Task Force},
+  type        = {Request for Comments},
+  number      = {8259},
+  series      = {STD},
+  year        = {2017},
+  month       = dec,
+  doi         = {10.17487/RFC8259},
+  url         = {https://www.rfc-editor.org/rfc/rfc8259},
+  note        = {Internet Standard 90. The interchange format emitted by
+                 \texttt{--json} and \texttt{roster-export}.},
+}
+
+@manual{posix2018,
+  title        = {The Open Group Base Specifications Issue 7, 2018 edition
+                  (IEEE Std 1003.1-2017), Chapter 12: Utility Conventions},
+  organization = {IEEE and The Open Group},
+  year         = {2018},
+  url          = {https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html},
+  note         = {The utility argument and exit-status conventions the
+                  front door's option handling and 0/1/2 exit codes follow.},
+}
+
+@book{raymond2003unix,
+  title     = {The Art of Unix Programming},
+  author    = {Raymond, Eric S.},
+  publisher = {Addison-Wesley},
+  year      = {2003},
+  isbn      = {978-0131429017},
+  note      = {Source of the composition and transparency rules behind the
+               plain, pipeable, ANSI-free output this CLI commits to.},
+}
+
+@misc{semver2,
+  title        = {Semantic Versioning 2.0.0},
+  author       = {Preston-Werner, Tom},
+  url          = {https://semver.org/spec/v2.0.0.html},
+  note         = {The versioning scheme used by this package's
+                  \texttt{pyproject.toml} and \texttt{manuscript/config.yaml}.},
 }

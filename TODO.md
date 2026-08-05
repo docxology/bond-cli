@@ -1,31 +1,34 @@
 # bond-cli TODO
 
 Forward-only backlog for the terminal front door (PROJECT BOND · THE FRONT
-DOOR). No closed-out archaeology; keep it pointed.
+DOOR). Delivered work is described in `README.md` and the manuscript, not
+archived here — this file holds only what is genuinely still open.
 
-## Phase-3 scope (this build)
+## Open work
 
-- [x] `src/bond_cli/dispatch.py` — verb-first argparse front door: `list`,
-      `brief`, `recon`, `plan`, `execute`, `debrief`, `run`, `status`,
-      `gadgets`; thin delegation to the four built layers.
-- [x] `scripts/bond.py` + console script `bond` — thin entry points.
-- [x] `src/bond_cli/manuscript_variables.py` — identity + registry tokens.
-- [x] Deterministic zero-mock suite (real film providers + subprocess smoke) at
-      ≥90% coverage.
-
-## Phase-4 scope (deep improvement — this build)
-
-- [x] New commands: `missions` (canned orchestrator missions + chains),
-      `whois <film>` (registry identity + built-on-disk + measured gate state),
-      `roster-export` (fleet roster as key-sorted JSON, stdout or `--output`).
-- [x] Richer output: `--json` on `list`/`status`/`missions`/`whois`;
-      `src/bond_cli/table.py::format_table` color-safe aligned tables (no ANSI).
-- [x] `status` keeps reading the measured gate manifest
-      (`output/aggregate/gate_manifest.json`); `gadgets` keeps tolerating every
-      fleet registration convention (hook arities, module GADGETS dict/factory,
-      provider-bound, bond-api registry) — now proven by tmp-package tests.
-- [x] Zero-mock suite extended (65 tests) with tmp fake film packages for
-      gadget conventions; manuscript + docs updated.
+- [ ] **`--json` on the remaining commands.** `gadgets` and `run` still print
+      human text only. `gadgets --json` (film → gadget names) and
+      `run --json` (per-package verdicts + consolidated debrief) would make the
+      whole surface machine-readable. Adding either means: parser flag,
+      `JSON_COMMANDS` entry, handler branch, test, and the
+      `{{JSON_COMMANDS}}`/`{{JSON_COMMAND_COUNT}}` tokens update themselves.
+- [ ] **Debrief with no lessons.** `cmd_debrief`'s "no lessons" branch is the
+      one partial branch left uncovered — every real provider currently returns
+      at least one lesson. Cover it when a film ships a lesson-free debrief, or
+      by driving `run_mission` over a real minimal provider.
+- [ ] **Fleet-wide `gadgets` cost.** The default sweep imports every film's
+      mission module (NumPy-backed films included), so a bare `bond gadgets`
+      takes seconds. Consider a `--fast` mode that reads only films already
+      imported, or parallel import. Do not "fix" it by caching results to disk —
+      that would introduce state the front door deliberately has none of.
+- [ ] **Shell completion.** No `bash`/`zsh` completion is shipped. Generating
+      it from `COMMANDS` (plus the roster for the `<film>` argument) is
+      mechanical and would keep completion in sync with the registry by
+      construction.
+- [ ] **Exit-code documentation for `run` sub-failures.** A mission whose
+      verdicts partly fail returns 1 with no indication of which package
+      failed beyond the consolidated debrief text. A structured summary line
+      (or the `run --json` above) would make scripting against it practical.
 
 ## Integration points / notes
 
@@ -34,17 +37,27 @@ DOOR). No closed-out archaeology; keep it pointed.
   and falls back to the orchestrator's built-in deterministic provider when a
   film is not built. As the fleet's remaining films land, `run` uses them with
   no front-door change.
-- **Gadget discovery is best-effort.** `bond gadgets` imports each film's
-  `mission` module and calls `register_gadgets` if present; films without the
-  hook (or that fail to import) contribute 0. 14/27 films currently register.
+- **Gadget discovery is best-effort by contract.** `register_film_gadgets`
+  tolerates every registration convention and returns 0 for a film that fails
+  to import, so one broken film cannot abort a fleet sweep. Do not narrow this
+  to "raise on import error" — the whole-fleet sweep depends on it. To see how
+  many films currently register, run `uv run python scripts/bond.py gadgets`
+  and count the lines; the figure moves as the fleet is built, so it is not
+  written down here.
 - **Not a scope item.** The front door does not implement the protocol, the
   DAG runner, the registry, or Q-branch primitives — those stay in their own
-  packages.
+  packages. It also does not do interactive/TUI modes, persistent state, or
+  network access.
 
-## Quality gates (current evidence)
+## Quality gates (how to check, not what the numbers were)
 
-- Tests + coverage: `uv run pytest tests/ --cov=src --cov-fail-under=90`.
-  Live count + coverage % in `docs/_generated/COUNTS.md`.
-- Lint/type: `uv run ruff check src/ scripts/ tests/` and
-  `uv run mypy src/ scripts/` clean.
-- Lineage: zero exemplar-lineage hits outside allowed docs.
+```bash
+uv run pytest tests/ --cov=src --cov-fail-under=90
+uv run ruff check src/ scripts/ tests/ && uv run ruff format --check src/ scripts/ tests/
+uv run mypy src/ scripts/
+```
+
+Live test count and measured `src/` coverage: `docs/_generated/COUNTS.md`.
+Derived counts (commands, JSON commands, layers, films, missions):
+`data/claim_ledger.yaml`, re-derived from their named sources by
+`tests/test_hardening.py::test_claim_ledger_matches_its_sources`.

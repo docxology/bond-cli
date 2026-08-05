@@ -8,20 +8,33 @@ layers:
     rules:
       - "Routes verbs to built layers; no business logic implemented here"
       - "Loads films via the FROZEN bond_api discovery contract"
-      - "Deterministic output: roster order, sorted result keys"
+      - "Consumes the MissionProvider protocol; never implements or extends it"
+      - "COMMANDS / JSON_COMMANDS / DEPENDENCY_LAYERS are the single source of every surface count"
+      - "Gate-manifest reconciliation reports measurements only where a row exists"
+      - "Deterministic output: roster order, sorted JSON keys, no wall-clock fields"
+  src/bond_cli/table.py:
+    role: "Color-safe table rendering"
+    rules:
+      - "Fixed-width alignment only; never emits ANSI escape sequences"
+      - "Never truncates or wraps a cell; byte-identical for identical input"
+      - "No terminal-width probing and no environment reads"
   src/bond_cli/manuscript_variables.py:
     role: "Manuscript token map"
     rules:
-      - "Identity tokens from manuscript/config.yaml (PyYAML)"
-      - "Fleet tokens from the coordinator registry + dispatch.COMMANDS"
+      - "Identity + paper version tokens from manuscript/config.yaml (PyYAML)"
+      - "Fleet tokens from the coordinator ROSTER and orchestrator MISSION_NAMES"
+      - "Surface tokens from dispatch.COMMANDS / JSON_COMMANDS / DEPENDENCY_LAYERS"
+      - "Never emits a wall-clock value or a literal count"
   scripts:
     role: "Thin wrappers"
     rules:
       - "sys.path bootstrap + argv forwarding only"
 
 cross_cutting:
-  - "Delegates to bond-api / bond-coordinator / bond-orchestrator / bond-utilities; never re-implements their logic"
+  - "Delegates to bond-utilities / bond-api / bond-coordinator / bond-orchestrator; never re-implements their logic"
   - "No infrastructure.* imports anywhere in src/ or scripts/"
-  - "Zero mocks in tests; real subprocess + real film providers"
+  - "Zero mocks in tests; real subprocess, real film providers, real tmp packages, real manifests"
+  - "Tests pin dispatch.GATE_MANIFEST so ambient fleet state cannot change the result"
   - "Gate >= 90% line+branch coverage on src/"
-  - "Exit codes: 0 success, 1 command failure, 2 argparse misuse"
+  - "Exit codes: 0 success, 1 command failure, 2 argparse misuse / unknown mission"
+  - "Every countable claim is a manuscript token and a re-derived data/claim_ledger.yaml row"

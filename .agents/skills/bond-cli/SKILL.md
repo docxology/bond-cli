@@ -16,7 +16,8 @@ DOOR**). Load when working inside the package.
 ## When to Use
 
 - Maintaining `bond-cli`: the verb-first `bond` CLI (`list`, `brief`, `recon`,
-  `plan`, `execute`, `debrief`, `run`, `status`, `gadgets`).
+  `plan`, `execute`, `debrief`, `run`, `status`, `gadgets`, `missions`,
+  `whois`, `roster-export`), its `--json` output, and its color-safe tables.
 - Verifying the package against the shared guardrail preamble (≥90% coverage,
   no mocks, thin orchestrators, delegation, no lineage residue).
 
@@ -41,6 +42,9 @@ uv run python scripts/bond.py gadgets skyfall
   bond-api (protocol/discovery/registry), bond-coordinator (registry/status),
   bond-orchestrator (missions/runner/adapters), bond-utilities (transitive).
 - `src/bond_cli/dispatch.py` — argparse surface + delegation; no business logic.
+  `COMMANDS` / `JSON_COMMANDS` / `DEPENDENCY_LAYERS` are the single source of
+  every surface count.
+- `src/bond_cli/table.py` — color-safe aligned tables (fixed width, no ANSI).
 - `src/bond_cli/manuscript_variables.py` — `{{TOKEN}}` map.
 - `scripts/bond.py` — thin bootstrap; console script `bond` is identical.
 
@@ -55,6 +59,15 @@ uv run python scripts/bond.py gadgets skyfall
   path is a directory — filter `_film_search_paths` to existing dirs (sable
   lives only under `bond-api/films`).
 - **Exit codes:** 0 success, 1 command failure, 2 argparse misuse.
+- **Pin the gate manifest.** The fleet's `output/aggregate/gate_manifest.json`
+  lives outside this package and comes and goes; any test that depends on it
+  must point `dispatch.GATE_MANIFEST` at a `tmp_path`, or the suite's result
+  and branch coverage move with the workspace.
+- **Report measurement honestly.** A film absent from a partial manifest must
+  report `measured: null` — never its declared registry status dressed up as an
+  observation. A measured `0.0` coverage is a measurement, not "unknown".
+- **No hand-authored numbers.** Counts go in `build_tokens()` and
+  `data/claim_ledger.yaml`, both re-derived by the suite.
 - **Lineage / no-mock self-referential greps:** bracket-split or reword so your
   own docs and tests can't trip the fleet gates.
 - **mypy:** the four layers ship without `py.typed` — the

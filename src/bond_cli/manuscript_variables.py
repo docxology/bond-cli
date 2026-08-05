@@ -1,10 +1,15 @@
 """Manuscript variable hydration for bond-cli (THE FRONT DOOR).
 
 Builds the ``{{TOKEN}}`` substitution map referenced by the manuscript prose.
-Identity tokens (package name, codename) come from ``manuscript/config.yaml``;
-fleet-derived tokens come from the built coordinator registry (the 27-film
-roster) and the CLI's own deterministic command registry. Nothing here reads
-wall-clock or runtime gate output.
+Identity tokens (package name, codename, version) come from
+``manuscript/config.yaml``; fleet-derived tokens come from the built
+coordinator registry (the film roster) and the orchestrator's canned-mission
+registry; surface tokens come from the CLI's own deterministic command,
+JSON-flag, and dependency-layer registries in :mod:`bond_cli.dispatch`.
+
+Every quantity the manuscript states about this package is produced here — the
+prose never hand-authors a number. Nothing here reads wall-clock or runtime
+gate output, so the map is byte-stable for an unchanged fleet.
 """
 
 from __future__ import annotations
@@ -15,7 +20,14 @@ from typing import cast
 
 import yaml
 
-from .dispatch import CLI_CODENAME, COMMANDS, SUITE_NAME
+from . import __version__
+from .dispatch import (
+    CLI_CODENAME,
+    COMMANDS,
+    DEPENDENCY_LAYERS,
+    JSON_COMMANDS,
+    SUITE_NAME,
+)
 
 #: Defaults used when ``manuscript/config.yaml`` is absent (tests, drafts).
 _DEFAULT_IDENTITY = {
@@ -48,21 +60,68 @@ def read_identity(project_root: str | Path) -> dict[str, str]:
     }
 
 
+def read_paper_version(project_root: str | Path) -> str:
+    """Read ``paper.version`` from ``manuscript/config.yaml``.
+
+    Falls back to the package ``__version__`` when the config is absent,
+    unreadable, not a mapping, or carries no ``paper.version``.
+    """
+    config_path = Path(project_root) / "manuscript" / "config.yaml"
+    if not config_path.is_file():
+        return __version__
+    try:
+        raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):  # pragma: no cover - unreadable/malformed
+        return __version__
+    if not isinstance(raw, dict):
+        return __version__
+    paper = raw.get("paper")
+    if not isinstance(paper, dict):
+        return __version__
+    return str(paper.get("version") or __version__)
+
+
 def _film_count() -> int:
     from bond_coordinator.registry import ROSTER
 
     return len(ROSTER)
 
 
+def _mission_names() -> tuple[str, ...]:
+    """The orchestrator's canned mission names, in its canonical order."""
+    from bond_orchestrator.missions import MISSION_NAMES
+
+    return tuple(MISSION_NAMES)
+
+
 def build_tokens(project_root: str | Path) -> dict[str, str]:
-    """Return the full ``{{TOKEN}}`` → value map for the manuscript."""
+    """Return the full ``{{TOKEN}}`` → value map for the manuscript.
+
+    Sources, one per token family:
+
+    - identity (``PACKAGE_NAME``/``CODENAME``/``PACKAGE_VERSION``) —
+      ``manuscript/config.yaml``;
+    - fleet (``FILM_COUNT``, ``MISSION_*``) — the built coordinator registry
+      and orchestrator mission registry;
+    - surface (``COMMAND*``, ``JSON_COMMAND*``, ``LAYER_*``) — the dispatch
+      module's own registries.
+    """
     identity = read_identity(project_root)
+    missions = _mission_names()
     return {
         "SUITE_NAME": SUITE_NAME,
         "PACKAGE_NAME": identity["package_name"],
         "CODENAME": identity["codename"],
+        "PACKAGE_VERSION": read_paper_version(project_root),
         "FILM_COUNT": str(_film_count()),
         "COMMANDS": ", ".join(COMMANDS),
+        "COMMAND_COUNT": str(len(COMMANDS)),
+        "JSON_COMMANDS": ", ".join(JSON_COMMANDS),
+        "JSON_COMMAND_COUNT": str(len(JSON_COMMANDS)),
+        "LAYER_NAMES": ", ".join(DEPENDENCY_LAYERS),
+        "LAYER_COUNT": str(len(DEPENDENCY_LAYERS)),
+        "MISSION_NAMES": ", ".join(missions),
+        "MISSION_COUNT": str(len(missions)),
     }
 
 

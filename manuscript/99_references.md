@@ -1,8 +1,19 @@
 # References
 
-- bond-api — THE PROTOCOL: the frozen `MissionProvider` contract, discovery, and registries (in-repo, `projects/working/bond/bond-api`).
-- bond-coordinator — MISSION CONTROL: registry, mission ledger, and suite status (in-repo, `projects/working/bond/bond-coordinator`).
-- bond-orchestrator — DAG 00: the multi-package mission runner with checkpoint/resume and provenance (in-repo, `projects/working/bond/bond-orchestrator`).
-- bond-utilities — Q-BRANCH: ciphers, codenames, clocks, randomness, mission IO (in-repo, `projects/working/bond/bond-utilities`).
-- argparse — https://docs.python.org/3/library/argparse.html (command-line argument parsing, standard library).
-- RFC 8259 — https://www.rfc-editor.org/rfc/rfc8259 (Bray, 2017; JSON data interchange format used for `--json` output and `roster-export`).
+## In-suite packages (the {{LAYER_COUNT}} built layers this front door consumes)
+
+- **bond-utilities — Q-BRANCH**: ciphers, codenames, clocks, deterministic randomness, mission IO (in-repo, `projects/working/bond/bond-utilities`).
+- **bond-api — THE PROTOCOL**: the frozen `MissionProvider` contract, discovery, and the `GadgetRegistry` (in-repo, `projects/working/bond/bond-api`).
+- **bond-coordinator — MISSION CONTROL**: the {{FILM_COUNT}}-film registry, mission ledger, and suite status (in-repo, `projects/working/bond/bond-coordinator`).
+- **bond-orchestrator — DAG 00**: the multi-package mission runner with checkpoint/resume and provenance, and the {{MISSION_COUNT}} canned missions (in-repo, `projects/working/bond/bond-orchestrator`).
+
+## External standards and sources
+
+Cited from `references.bib`:
+
+- Bethard, S. (2009). *PEP 389 — argparse: New Command Line Parsing Module*. Python Enhancement Proposal 389. [@bethard2009argparse]
+- Python Software Foundation. *argparse — Parser for command-line options, arguments and sub-commands*. The Python Standard Library documentation. [@pythonargparse]
+- Bray, T. (Ed.) (2017). *The JavaScript Object Notation (JSON) Data Interchange Format*. RFC 8259 / STD 90, IETF. doi:10.17487/RFC8259 [@rfc8259]
+- IEEE and The Open Group (2018). *The Open Group Base Specifications Issue 7, 2018 edition (IEEE Std 1003.1-2017)*, Chapter 12: Utility Conventions. [@posix2018]
+- Raymond, E. S. (2003). *The Art of Unix Programming*. Addison-Wesley. [@raymond2003unix]
+- Preston-Werner, T. *Semantic Versioning 2.0.0*. [@semver2]

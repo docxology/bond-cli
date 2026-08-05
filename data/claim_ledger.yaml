@@ -1,17 +1,39 @@
-# Claim ledger — bond-cli
-# Sourced numeric claims for evidence-registry validation. Values are
-# data-derived from the built layers, not prose.
+# Claim ledger — bond-cli (THE FRONT DOOR)
+#
+# Sourced numeric claims for evidence-registry validation. Every value is
+# derived from a live registry, never from prose. Each row names the exact
+# symbol it summarises, and
+# tests/test_hardening.py::test_claim_ledger_matches_its_sources re-derives all
+# of them from those symbols — a stale row fails the suite instead of quietly
+# misreporting the fleet.
+#
+# The same registries hydrate the manuscript {{TOKEN}}s via
+# src/bond_cli/manuscript_variables.py, so ledger and manuscript cannot drift
+# apart.
 
 claims:
   - id: film_count
     description: Film packages in the coordinator roster.
     value: 27
     source: bond_coordinator.registry.ROSTER
+    token: FILM_COUNT
   - id: command_count
     description: Front-door subcommands exposed by the CLI.
-    value: 9
+    value: 12
     source: bond_cli.dispatch.COMMANDS
+    token: COMMAND_COUNT
+  - id: json_command_count
+    description: Subcommands accepting --json (roster-export is JSON by construction).
+    value: 4
+    source: bond_cli.dispatch.JSON_COMMANDS
+    token: JSON_COMMAND_COUNT
   - id: dependency_layers
     description: Built sibling layers the front door delegates to.
     value: 4
-    source: bond_api / bond_coordinator / bond_orchestrator / bond_utilities
+    source: bond_cli.dispatch.DEPENDENCY_LAYERS
+    token: LAYER_COUNT
+  - id: mission_count
+    description: Canned orchestrator missions reachable through `bond run`.
+    value: 3
+    source: bond_orchestrator.missions.MISSION_NAMES
+    token: MISSION_COUNT

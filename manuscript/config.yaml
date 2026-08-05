@@ -1,7 +1,8 @@
 # BOND-CLI — PROJECT BOND front door (THE FRONT DOOR)
 # Layer 4 · unified terminal CLI over the orchestrator/coordinator.
 # Loaded by scripts/z_generate_manuscript_variables.py ->
-# src/bond_cli/manuscript_variables.py (read_identity reads the `package:` block).
+# src/bond_cli/manuscript_variables.py: read_identity() reads the `package:`
+# block, read_paper_version() reads paper.version ({{PACKAGE_VERSION}}).
 
 package:
   name: "bond-cli"
@@ -9,7 +10,7 @@ package:
 
 paper:
   title: "BOND-CLI — The Unified Terminal Front Door for the PROJECT BOND Suite"
-  subtitle: "THE FRONT DOOR: film brief/recon/plan/execute/debrief, orchestrator missions, suite status, gadgets"
+  subtitle: "Thin verb-first dispatch over the built layers: film brief/recon/plan/execute/debrief, orchestrator missions, gadget discovery, and measured suite status with JSON export"
   version: "3.0.0"
   date: "2026-08-04"
 
@@ -27,10 +28,15 @@ publication:
   repository_url: ""
 
 keywords:
-  - "terminal front door"
   - "command-line interface"
+  - "thin dispatch layer"
+  - "protocol consumer"
   - "mission orchestration"
-  - "film providers"
+  - "film provider discovery"
+  - "gadget registry"
+  - "measured gate reconciliation"
+  - "deterministic JSON output"
+  - "exit-code contract"
   - "reproducible software"
 
 metadata:

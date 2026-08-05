@@ -9,8 +9,11 @@ codes.
 
 from __future__ import annotations
 
+#: Package version. Assigned BEFORE the submodule imports below because
+#: ``manuscript_variables`` reads it as the fallback for the manuscript
+#: ``{{PACKAGE_VERSION}}`` token during package initialisation.
+__version__ = "3.0.0"
+
 from . import dispatch, manuscript_variables
 
 __all__ = ["dispatch", "manuscript_variables"]
-
-__version__ = "3.0.0"

@@ -77,6 +77,20 @@ COMMANDS: tuple[str, ...] = (
     "roster-export",
 )
 
+#: Commands that accept ``--json`` for machine-readable output. ``roster-export``
+#: is deliberately absent: it is JSON by construction and takes no flag.
+JSON_COMMANDS: tuple[str, ...] = ("list", "status", "missions", "whois")
+
+#: The built sibling layers this front door delegates to, in dependency order
+#: (Layer 0 → Layer 3). The front door itself is Layer 4 and owns no mission
+#: logic; this tuple is the single source of the manuscript LAYER_* tokens.
+DEPENDENCY_LAYERS: tuple[str, ...] = (
+    "bond-utilities",
+    "bond-api",
+    "bond-coordinator",
+    "bond-orchestrator",
+)
+
 
 class CliError(Exception):
     """A command-level failure the CLI turns into exit code 1."""
@@ -267,38 +281,67 @@ def _resolve_provider(package_id: str) -> Any:
         return get_provider(package_id)
 
 
-def _measured_roster() -> tuple[Any, ...] | None:
-    """Return the roster reconciled against the aggregate gate manifest.
+def _measured_coverage(row: dict[str, Any]) -> float | None:
+    """Extract a measured coverage % from a gate-manifest row.
 
-    Each film with a measured gate row gets its REAL status (``ready`` when the
-    gate passed, ``red`` when it failed) and its measured coverage %.  Returns
-    ``None`` when the manifest is absent (fresh/unknown fleet state).
+    Returns ``None`` only when the row carries no usable number — a measured
+    ``0.0`` is a real measurement (a package whose suite covered nothing) and
+    must NOT be laundered into "unknown".
+    """
+    value = row.get("coverage")
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def _manifest_rows() -> dict[str, dict[str, Any]] | None:
+    """Gate-manifest rows keyed by package slug.
+
+    Returns ``None`` when the manifest is absent, unreadable, or malformed —
+    the honest "no measurement available" signal. Never raises: a broken
+    manifest degrades the front door to registry-only reporting, it does not
+    fail a command.
     """
     if not GATE_MANIFEST.is_file():
         return None
-    from dataclasses import replace
-
-    from bond_coordinator.registry import ROSTER
-    from bond_coordinator.types import PackageStatus
-
     try:
         manifest = json.loads(GATE_MANIFEST.read_text())
-        rows = {p["package"]: p for p in manifest.get("packages", [])}
-    except (OSError, ValueError, KeyError):
+        return {row["package"]: row for row in manifest.get("packages", [])}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return None
 
-    reconciled: list[Any] = []
-    for record in ROSTER:
-        row = rows.get(record.slug)
-        if row is None:
-            reconciled.append(record)
-            continue
-        status = PackageStatus.READY if row.get("rc") == 0 else PackageStatus.RED
-        coverage: float | None = row.get("coverage")
-        reconciled.append(
-            replace(record, status=status, coverage=coverage if coverage else None)
-        )
-    return tuple(reconciled)
+
+def _reconcile(record: Any, row: dict[str, Any]) -> Any:
+    """Overlay one measured gate row onto its registry record.
+
+    ``rc == 0`` is the only pass condition (``ready``); anything else is
+    ``red``. Coverage comes from :func:`_measured_coverage`.
+    """
+    from dataclasses import replace
+
+    from bond_coordinator.types import PackageStatus
+
+    status = PackageStatus.READY if row.get("rc") == 0 else PackageStatus.RED
+    return replace(record, status=status, coverage=_measured_coverage(row))
+
+
+def _measured_roster() -> tuple[Any, ...] | None:
+    """Return the roster reconciled against the aggregate gate manifest.
+
+    Each film with a measured gate row gets its REAL status and measured
+    coverage %.  A roster film with no row keeps its registry record unchanged
+    (the manifest may cover only part of the fleet).  Returns ``None`` when no
+    manifest is available.
+    """
+    rows = _manifest_rows()
+    if rows is None:
+        return None
+    from bond_coordinator.registry import ROSTER
+
+    return tuple(
+        _reconcile(record, rows[record.slug]) if record.slug in rows else record
+        for record in ROSTER
+    )
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -402,16 +445,18 @@ def cmd_whois(args: argparse.Namespace) -> int:
     except KeyError as exc:
         raise CliError(f"no registry record for film {args.film!r}: {exc}") from exc
 
+    # ``measured`` is populated ONLY when the gate manifest actually carries a
+    # row for this film. A film absent from a partial manifest reports
+    # ``null`` — never the registry defaults dressed up as a measurement.
     measured: dict[str, Any] | None = None
-    roster = _measured_roster()
-    if roster is not None:
-        for candidate in roster:
-            if candidate.slug == args.film:
-                measured = {
-                    "status": candidate.status.value,
-                    "coverage": candidate.coverage,
-                }
-                break
+    rows = _manifest_rows()
+    row = rows.get(args.film) if rows is not None else None
+    if row is not None:
+        reconciled = _reconcile(record, row)
+        measured = {
+            "status": reconciled.status.value,
+            "coverage": reconciled.coverage,
+        }
 
     payload = {
         "slug": record.slug,

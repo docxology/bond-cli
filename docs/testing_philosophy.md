@@ -24,7 +24,11 @@ replacement: it redirects real filesystem reads at real files this test wrote.
 Two tests also monkeypatch a sibling layer's function to raise its **own real
 exception type** (`FilmProviderError`, and a real `build_status` over a real
 custom roster) to reach an error branch that cannot otherwise be provoked
-locally; the objects on both sides remain real.
+locally; the objects on both sides remain real. `test_contracts.py` uses
+`monkeypatch.setitem` to add a real `bond_orchestrator.protocol.Mission` to the
+real `MISSIONS` registry: that is data injection into a live registry, not a
+replaced dependency — the mission, the film package it names, the adapter, and
+the runner are all real.
 
 ## Real substitutes for mocks
 
@@ -42,6 +46,7 @@ locally; the objects on both sides remain real.
 |---|---|
 | `test_dispatch.py` | The command surface end-to-end: the full roster from `list`, the five protocol stages against `sable` and `goldfinger`, `run` over real film adapters plus the real-`FilmProviderError` fallback, `status` (plain, blocked, measured, unmeasured, malformed manifest), `gadgets` for registering and non-registering films, and every exit-code path. |
 | `test_deepening.py` | The Phase-4 surface: `missions`, `whois`, `roster-export`, the `--json` variants, color-safe table behaviour, and each gadget-registration convention driven through a real tmp film package. |
+| `test_contracts.py` | The two claims coverage could not see: the **exit-code** contract (a real film package whose `execute` genuinely fails, driven through `execute`, `debrief`, and a real one-package `Mission` under `run`, each paired with a passing positive control) and the **sorted-JSON-keys** contract (asserted against the raw emitted text via `object_pairs_hook`, with each handler's literal construction order pinned so the assertion cannot pass vacuously). Also the lesson-free debrief and the non-registry/non-dict `GADGETS` fall-through. |
 | `test_hardening.py` | The Phase-5 edges: measured `0.0` coverage preserved, non-numeric/boolean coverage rejected, partial manifests (unmeasured films keep registry records and report `measured: null`), malformed and package-key-less manifests, the unmeasured `roster-export` branch, a film that raises on import, optional `MissionBrief` sections, the token↔registry contract, and the claim ledger re-derived from its named sources. |
 | `test_manuscript_variables.py` | Token hydration: identity from config, defaults when config is absent or malformed, persistence round-trip, and a sweep asserting every `{{TOKEN}}` used in the numbered manuscript sections resolves. |
 | `test_scripts_smoke.py` | The thin `scripts/` wrappers as real subprocesses, proving the operator-facing entry points work outside the pytest process. |
@@ -63,6 +68,24 @@ Fixed-seed providers, canonical ordering (roster order, sorted JSON keys), and
 no wall-clock in any persisted artifact make repeated runs byte-stable. Tests
 assert real values, never timestamps; `test_status_json` asserts that no
 `generated_at` key exists.
+
+The sorted-keys half of that claim needs asserting against **raw text**. Every
+`assert json.loads(out)[...] == ...` in this suite parses into a dict first,
+which discards key order — for a whole phase all six `sort_keys=True` sites
+could be flipped to `False` with the suite still green. `test_contracts.py`
+captures key order with `object_pairs_hook` before any dict exists, and pins
+each handler's literal construction order so a passing assertion proves the
+sort happened rather than coinciding with insertion order.
+
+## Coverage is not verification
+
+`dispatch.py` sat just under 100 % with three `return 0 if <predicate> else 1`
+expressions whose non-zero arm no test ever reached: coverage.py emits no
+branch arc for a conditional expression, so replacing all three with a bare
+`return 0` left the suite green. Percentage measures execution, not
+falsifiability. Where a claim is load-bearing — exit codes, key ordering — the
+test is checked by mutating the code it guards and confirming it goes red; the
+mutation table lives in [`_generated/COUNTS.md`](_generated/COUNTS.md).
 
 ## Coverage
 

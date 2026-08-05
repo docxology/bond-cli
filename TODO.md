@@ -12,10 +12,6 @@ archived here — this file holds only what is genuinely still open.
       whole surface machine-readable. Adding either means: parser flag,
       `JSON_COMMANDS` entry, handler branch, test, and the
       `{{JSON_COMMANDS}}`/`{{JSON_COMMAND_COUNT}}` tokens update themselves.
-- [ ] **Debrief with no lessons.** `cmd_debrief`'s "no lessons" branch is the
-      one partial branch left uncovered — every real provider currently returns
-      at least one lesson. Cover it when a film ships a lesson-free debrief, or
-      by driving `run_mission` over a real minimal provider.
 - [ ] **Fleet-wide `gadgets` cost.** The default sweep imports every film's
       mission module (NumPy-backed films included), so a bare `bond gadgets`
       takes seconds. Consider a `--fast` mode that reads only films already
@@ -44,6 +40,14 @@ archived here — this file holds only what is genuinely still open.
   many films currently register, run `uv run python scripts/bond.py gadgets`
   and count the lines; the figure moves as the fleet is built, so it is not
   written down here.
+- **Coverage cannot see a conditional expression.** `return 0 if ok else 1`
+  produces no branch arc, so 100 % line+branch coverage says nothing about
+  whether the non-zero exit path is exercised. Every exit-code and
+  key-ordering claim is therefore pinned explicitly in
+  `tests/test_contracts.py`, and each of those tests was verified by mutating
+  `dispatch.py` and watching it go red (see `docs/_generated/COUNTS.md`). Any
+  new `return 0 if … else 1` needs a paired failing-path test; the gate will
+  not catch it for you.
 - **Not a scope item.** The front door does not implement the protocol, the
   DAG runner, the registry, or Q-branch primitives — those stay in their own
   packages. It also does not do interactive/TUI modes, persistent state, or

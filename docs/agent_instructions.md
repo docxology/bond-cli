@@ -64,6 +64,9 @@ someone last ran the fleet gate, and branch coverage silently moves with it.
 - Output ordering is canonical (roster order, sorted JSON keys).
 - No wall-clock data in any persisted artifact — `status --json` deliberately
   has no `generated_at` field, and a test asserts its absence.
+- Assert key ordering on the **raw emitted text**
+  (`tests/test_contracts.py::_key_orders`). `json.loads(out)["x"] == y`
+  discards order, so it cannot see `sort_keys` being dropped.
 
 ## Rule 7 — Coverage gate
 
@@ -76,12 +79,23 @@ uv run pytest tests/ --cov=src --cov-fail-under=90
 Live count + coverage % are in [`_generated/COUNTS.md`](_generated/COUNTS.md).
 Do not quote a coverage figure anywhere else — cite the gate or that file.
 
+The gate measures execution, not verification. Coverage emits no branch arc for
+a conditional expression, so a high percentage can coexist with a completely
+unbound claim — it did here, for the whole exit-code contract. Treat the
+percentage as necessary, never sufficient.
+
 ## Rule 8 — Exit codes
 
 `0` success, `1` command failure (unknown film, non-passing
 execute/debrief/run, empty gadget lookup), `2` argparse misuse and unknown
 mission. Test failures with `dispatch.main([...])` returning the code, and
 argparse misuse with `pytest.raises(SystemExit)`.
+
+Every `return 0 if <predicate> else 1` needs a test that drives the predicate
+**false** — otherwise the non-zero arm is unverified no matter what the
+coverage percentage says. `tests/test_contracts.py` holds those cases (real
+film packages whose `execute` genuinely fails), each paired with a passing
+positive control.
 
 ## Rule 9 — Every number is derived
 

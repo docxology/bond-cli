@@ -41,9 +41,14 @@ a fleet of standalone packages otherwise lacks.
 `list`/`status`/`missions`/`whois` accept `--json`; `roster-export` is JSON by
 construction. Human tables are color-safe (fixed-width alignment, no ANSI).
 
-**Exit codes:** `0` success · `1` command failure (unknown film, non-passing
-execute/debrief/run, empty gadget lookup) · `2` argparse misuse or unknown
-mission.
+**Exit codes:** `0` success · `1` command failure (unknown/broken film, non-passing
+execute/debrief/run, empty or broken gadget lookup) · `2` argparse misuse or unknown
+mission. All failure text goes to **stderr** — stdout on a failed command carries
+only data. In particular `bond gadgets <film>` distinguishes three outcomes: an
+unknown slug raises the same "not available" `CliError` as `brief`/`plan`, a
+built-but-broken film is diagnosed to stderr (naming the exception) while still
+contributing 0 so a whole-fleet sweep never aborts, and a clean film with no
+gadgets keeps the empty-lookup message.
 
 ## The MissionProvider surface it consumes
 

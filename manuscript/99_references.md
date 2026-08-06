@@ -17,3 +17,4 @@ Cited from `references.bib`:
 - IEEE and The Open Group (2018). *The Open Group Base Specifications Issue 7, 2018 edition (IEEE Std 1003.1-2017)*, Chapter 12: Utility Conventions. [@posix2018]
 - Raymond, E. S. (2003). *The Art of Unix Programming*. Addison-Wesley. [@raymond2003unix]
 - Preston-Werner, T. *Semantic Versioning 2.0.0*. [@semver2]
+- Python Software Foundation. *inspect — Inspect live objects*. The Python Standard Library documentation. [@pythoninspect]

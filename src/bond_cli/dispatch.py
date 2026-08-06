@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import inspect
 import json
 import sys
 from collections.abc import Callable, Sequence
@@ -386,8 +387,10 @@ def cmd_status(args: argparse.Namespace) -> int:
         print(f"  {state.value}: {count}")
     coverage = status.coverage
     mean = f"{coverage.mean:.1f}%" if coverage.mean is not None else "N/A"
+    minimum = f"{coverage.minimum:.1f}%" if coverage.minimum is not None else "N/A"
+    maximum = f"{coverage.maximum:.1f}%" if coverage.maximum is not None else "N/A"
     print(
-        f"coverage: mean={mean} min={coverage.minimum}% max={coverage.maximum}% "
+        f"coverage: mean={mean} min={minimum} max={maximum} "
         f"at_or_above_90={coverage.at_or_above_floor} ({coverage.known} measured)"
     )
     if status.blocked_packages:
@@ -531,6 +534,33 @@ def cmd_roster_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _invoke_register_hook(register: Callable[..., Any], registry: Any) -> None:
+    """Call a film's ``register_gadgets`` hook with the arity it actually accepts.
+
+    The fleet uses three hook shapes: ``register_gadgets(registry)``,
+    ``register_gadgets(registry=None)``, and ``register_gadgets()``.  The arity
+    is read from the signature so that a ``TypeError`` raised *inside* a
+    one-argument hook body is never misread as a "zero-arg hook" and re-invoked
+    with no arguments — which previously leaked a second, misleading
+    ``TypeError: missing 1 required positional argument`` up through the whole
+    sweep and masked the film's real defect.
+    """
+    try:
+        params: Any = inspect.signature(register).parameters.values()
+    except (TypeError, ValueError):  # uninspectable callable (e.g. a builtin)
+        params = ()
+    accepts_arg = any(
+        p.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        or p.kind is inspect.Parameter.VAR_POSITIONAL
+        for p in params
+    )
+    if accepts_arg:
+        register(registry)
+    else:
+        register()
+
+
 def register_film_gadgets(registry: Any, slug: str) -> int:
     """Import ``slug``'s mission module and register its gadgets (real discovery).
 
@@ -549,44 +579,52 @@ def register_film_gadgets(registry: Any, slug: str) -> int:
     try:
         try:
             module = importlib.import_module(f"{slug}.mission")
-        except Exception:
+        except Exception as exc:
+            print(
+                f"bond: gadget discovery: import of {slug!r} failed: {exc}",
+                file=sys.stderr,
+            )
             return 0
         before = len(registry.gadgets_for(slug))
 
-        # 1) the register_gadgets hook exists in either arity.
-        register = getattr(module, "register_gadgets", None)
-        if callable(register):
-            try:
-                register(registry)
-            except TypeError:
-                register()  # zero-arg hook: populates module-level GADGETS
+        try:
+            # 1) the register_gadgets hook exists in either arity.
+            register = getattr(module, "register_gadgets", None)
+            if callable(register):
+                _invoke_register_hook(register, registry)
 
-        # 2) merge the module-level GADGETS source regardless of hook style.
-        gadgets = getattr(module, "GADGETS", None)
-        provider_cls = getattr(module, "MissionProvider", None)
-        if callable(gadgets) and not hasattr(gadgets, "items"):
-            gadgets = gadgets()  # callable factory returning the registry
-        shelf_empty = (
-            not (hasattr(gadgets, "gadgets_for") and gadgets.gadgets_for(slug))
-            if gadgets is not None
-            else True
-        )
-        if shelf_empty and isinstance(provider_cls, type):
-            provider_cls()  # provider-bound convention registers at construction
-            gadgets = getattr(module, "GADGETS", None) or gadgets
-        if gadgets is not None:
+            # 2) merge the module-level GADGETS source regardless of hook style.
+            gadgets = getattr(module, "GADGETS", None)
+            provider_cls = getattr(module, "MissionProvider", None)
             if callable(gadgets) and not hasattr(gadgets, "items"):
                 gadgets = gadgets()  # callable factory returning the registry
-            if hasattr(gadgets, "gadgets_for") and hasattr(gadgets, "lookup"):
-                registry.register(
-                    slug,
-                    {
-                        name: gadgets.lookup(slug, name)
-                        for name in gadgets.gadgets_for(slug)
-                    },
-                )
-            elif isinstance(gadgets, dict):
-                registry.register(slug, gadgets)
+            shelf_empty = (
+                not (hasattr(gadgets, "gadgets_for") and gadgets.gadgets_for(slug))
+                if gadgets is not None
+                else True
+            )
+            if shelf_empty and isinstance(provider_cls, type):
+                provider_cls()  # provider-bound convention registers at construction
+                gadgets = getattr(module, "GADGETS", None) or gadgets
+            if gadgets is not None:
+                if callable(gadgets) and not hasattr(gadgets, "items"):
+                    gadgets = gadgets()  # callable factory returning the registry
+                if hasattr(gadgets, "gadgets_for") and hasattr(gadgets, "lookup"):
+                    registry.register(
+                        slug,
+                        {
+                            name: gadgets.lookup(slug, name)
+                            for name in gadgets.gadgets_for(slug)
+                        },
+                    )
+                elif isinstance(gadgets, dict):
+                    registry.register(slug, gadgets)
+        except Exception as exc:
+            print(
+                f"bond: gadget discovery: {slug!r} failed to register: {exc}",
+                file=sys.stderr,
+            )
+            return 0
         return len(registry.gadgets_for(slug)) - before
     finally:
         for entry in inserted:
@@ -609,23 +647,28 @@ def cmd_gadgets(args: argparse.Namespace) -> int:
     from bond_api.registry import GadgetRegistry
 
     registry = GadgetRegistry()
-    slugs = (
-        (args.film,) if args.film else (GADGET_FILM_SLUGS or _default_gadget_slugs())
-    )
-    for slug in slugs:
-        register_film_gadgets(registry, slug)
-
     if args.film:
+        # C1: an unknown film is a CliError (same "not available" wording as
+        # brief/plan); a *built* film whose mission import fails is diagnosed
+        # to stderr by register_film_gadgets while still contributing 0.
+        if not _film_built(args.film):
+            raise CliError(f"film {args.film!r} is not available")
+        register_film_gadgets(registry, args.film)
         names = registry.gadgets_for(args.film)
         if not names:
-            print(f"no gadgets registered for film {args.film!r}")
+            # C2: failure text belongs on stderr, never on stdout.
+            print(f"no gadgets registered for film {args.film!r}", file=sys.stderr)
             return 1
         for name in names:
             print(name)
         return 0
 
+    for slug in GADGET_FILM_SLUGS or _default_gadget_slugs():
+        register_film_gadgets(registry, slug)
+
     if not registry.films():
-        print("no film gadgets registered in the fleet")
+        # C2: failure text belongs on stderr, never on stdout.
+        print("no film gadgets registered in the fleet", file=sys.stderr)
         return 1
     for film in registry.films():
         names = registry.gadgets_for(film)

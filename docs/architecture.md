@@ -70,18 +70,30 @@ removed in a `finally`) and accepts every convention the fleet actually uses:
 
 | Convention | Handling |
 |---|---|
-| `register_gadgets(registry)` | called with the registry |
-| `register_gadgets()` (zero-arg) | `TypeError` retry, then the module-level `GADGETS` is harvested |
+| `register_gadgets(registry)` | called with the registry (arity from `inspect.signature`) |
+| `register_gadgets()` (zero-arg) | called with no argument (arity from `inspect.signature`) |
 | module `GADGETS` dict | registered directly |
 | module `GADGETS` callable factory | invoked, then registered |
 | module `GADGETS` = `bond_api.GadgetRegistry` | copied entry-by-entry via `lookup` |
 | gadgets bound in `MissionProvider.__init__` | provider constructed when the shelf looks empty, then the module re-read |
 
-A film that raises on import contributes `0`. That broad `except Exception` is
-deliberate and is the documented contract: a whole-fleet `bond gadgets` sweep
-must never be aborted by one unbuilt or broken film. It is bounded — it wraps
-the import only, and the "broken film contributes 0" path is asserted by a test
-against a real module that raises on import.
+The hook's arity is read from its signature rather than guessed by catching a
+`TypeError` on the registry call — a hook whose **body** raises `TypeError`
+would otherwise be misread as a zero-arg hook and re-invoked with no argument,
+escaping a misleading `TypeError: missing 1 required positional argument` and
+aborting the sweep.
+
+A film that raises on import contributes `0`, and a film whose hook body raises
+after import also contributes `0`. Those broad `try`/`except Exception` blocks
+are deliberate and are the documented contract: a whole-fleet `bond gadgets`
+sweep must never be aborted by one unbuilt or broken film. Each one prints a
+diagnostic to **stderr** naming the exception (so an operator can tell a broken
+film apart from an empty shelf) while the sweep continues; stdout carries only
+the registry result. `cmd_gadgets` distinguishes the three single-film outcomes:
+an unknown slug raises `CliError` (stderr, exit 1, same wording as `brief`),
+a built-but-broken film is diagnosed on stderr, and a clean film with no
+gadgets keeps the empty-lookup message — now on stderr too, so a caller piping
+stdout into a parser never receives error text as data.
 
 ## Relationship to the frozen `MissionProvider` contract
 

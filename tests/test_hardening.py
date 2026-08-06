@@ -11,6 +11,7 @@ whether this workspace happens to carry a measured manifest.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -346,3 +347,73 @@ def test_claim_ledger_matches_its_sources():
         "mission_count": len(MISSION_NAMES),
     }
     assert claims == expected
+
+
+# --------------------------------------------------------------------------- #
+# V3 — the layer contract is a gate, not just prose
+# --------------------------------------------------------------------------- #
+
+
+def _all_strings(node: object) -> list[str]:
+    """Every string leaf in the layer-contract YAML tree, recursively."""
+    if isinstance(node, str):
+        return [node]
+    if isinstance(node, dict):
+        out: list[str] = []
+        for value in node.values():
+            out.extend(_all_strings(value))
+        return out
+    if isinstance(node, (list, tuple)):
+        out = []
+        for item in node:
+            out.extend(_all_strings(item))
+        return out
+    return []
+
+
+def _collect_python_sources() -> str:
+    """All ``.py`` files under ``src/`` and ``scripts/``, concatenated.
+
+    Used to make the manuscript's ``cross_cutting`` claims mechanically
+    checkable: if an agent adds a forbidden import/pattern to those trees,
+    the suite goes red instead of silently falsifying the contract.
+    """
+    chunks: list[str] = []
+    for base in (PROJECT_ROOT / "src", PROJECT_ROOT / "scripts"):
+        chunks.extend(
+            path.read_text(encoding="utf-8") for path in sorted(base.rglob("*.py"))
+        )
+    return "\n".join(chunks)
+
+
+def test_layer_contract_prohibited_imports_are_gated():
+    """V3: three ``cross_cutting`` rules in ``manuscript/layer_contract.yaml``
+    are checkable against the source trees.  If any is violated, this fails.
+
+    - no ``infrastructure.*`` imports anywhere in ``src/`` or ``scripts/``;
+    - no wall-clock reads (``import time`` / ``datetime`` / ``.now()``);
+    - no terminal-width probing or environment reads.
+    """
+    contract = yaml.safe_load(
+        (PROJECT_ROOT / "manuscript" / "layer_contract.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    rules = "\n".join(_all_strings(contract))
+    src = _collect_python_sources()
+
+    # The contract must still *state* each rule (so deleting it from the YAML
+    # fails the gate rather than making the assertion trivially pass).
+    assert "infrastructure." in rules and "No infrastructure" in rules
+    assert "wall-clock" in rules
+    assert "terminal-width probing" in rules and "environment reads" in rules
+
+    assert "infrastructure." not in src, (
+        "infrastructure import leaked into src/scripts/"
+    )
+    assert not re.search(
+        r"(^|\n)(import time|from datetime import|import datetime)", src
+    )
+    assert ".now()" not in src
+    assert "getenv" not in src and "os.environ" not in src
+    assert "get_terminal_size" not in src

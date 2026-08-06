@@ -1,7 +1,7 @@
 # Experimental Setup
 
 - **Runtime.** Python ≥3.10; the {{LAYER_COUNT}} built layers ({{LAYER_NAMES}}) wired via `[tool.uv.sources]` path sources, plus NumPy (film providers load it at import time) and PyYAML (manuscript config).
-- **Entry points.** Console script `bond` (`bond = "bond_cli.dispatch:main"`) and the thin `scripts/bond.py` bootstrap — identical dispatch, both returning the same exit codes.
+- **Entry points.** Console script `bond` (`bond = "bond_cli.dispatch:main"`) and the thin `scripts/bond.py` bootstrap — identical dispatch, both returning the same exit codes. Both are exercised: the console script by a subprocess smoke test that asserts its stdout/exit code equal the bootstrap's, the bootstrap by the `test_scripts_smoke.py` suite.
 - **Film discovery.** `bond_api.discovery.load_provider` over `<slug>/src` (fleet layout) and `bond-api/films` (reference layout), FROZEN contract; only existing directories are offered to it.
 - **Mission execution.** `bond_orchestrator.runner.MissionRunner` over real film adapters, with the orchestrator's built-in deterministic provider as fallback for films not yet built on disk.
 - **Measured fleet state.** The aggregate gate manifest at `<bond root>/output/aggregate/gate_manifest.json`, written by the fleet gate runner. Absent, unreadable, or malformed ⇒ registry-only reporting; the tests pin this path at a temporary file so no result depends on whether the workspace currently holds a manifest.

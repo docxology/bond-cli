@@ -146,10 +146,22 @@ def test_gadgets_film_real(capsys):
 
 
 def test_gadgets_film_none(capsys):
-    # sable (reference) registers no gadgets -> lookup fails, exit 1
-    code, out, _ = _run(capsys, ["gadgets", "sable"])
+    # sable (reference) registers no gadgets -> empty lookup, exit 1.
+    # The failure text goes to STDERR (C2): stdout must be empty.
+    code, out, err = _run(capsys, ["gadgets", "sable"])
     assert code == 1
-    assert "no gadgets registered for film 'sable'" in out
+    assert "no gadgets registered for film 'sable'" in err
+    assert out == ""
+
+
+def test_gadgets_unknown_film_cli_error(capsys):
+    # C1: an unknown slug raises a CliError (stderr, exit 1), same "not
+    # available" wording as brief/plan — not the generic empty-lookup message.
+    code, out, err = _run(capsys, ["gadgets", "definitely_not_a_film"])
+    assert code == 1
+    assert "film 'definitely_not_a_film' is not available" in err
+    assert "no gadgets registered" not in err
+    assert out == ""
 
 
 def test_gadgets_all_films(capsys, monkeypatch):
@@ -161,9 +173,10 @@ def test_gadgets_all_films(capsys, monkeypatch):
 
 def test_gadgets_empty_registry(capsys, monkeypatch):
     monkeypatch.setattr(dispatch, "GADGET_FILM_SLUGS", ("sable",))  # registers nothing
-    code, out, _ = _run(capsys, ["gadgets"])
+    code, out, err = _run(capsys, ["gadgets"])
     assert code == 1
-    assert "no film gadgets registered" in out
+    assert "no film gadgets registered in the fleet" in err
+    assert out == ""
 
 
 def test_default_gadget_slugs():
@@ -178,6 +191,113 @@ def test_register_gadgets_no_module(tmp_path):
     registry = GadgetRegistry()
     assert dispatch.register_film_gadgets(registry, "no_such_film_zzz") == 0
     assert registry.films() == ()
+
+
+def test_register_gadgets_hook_body_typeerror_is_contained(
+    tmp_path, monkeypatch, capsys
+):
+    """Regression (defect A): a one-arg ``register_gadgets(registry)`` whose
+    BODY raises ``TypeError`` must not be misread as a zero-arg hook and
+    re-invoked with no argument.
+
+    The old ``except TypeError: register()`` fallback turned a real defect in a
+    film's hook body into a SECOND, misleading ``TypeError: missing 1 required
+    positional argument`` that escaped the sweep.  Now the arity is read from
+    the signature, so the body's own ``TypeError`` surfaces as a diagnostic and
+    the film contributes 0 instead of aborting the fleet sweep.
+    """
+    pkg_dir = tmp_path / "tst_typerr" / "src" / "tst_typerr"
+    pkg_dir.mkdir(parents=True)
+    (pkg_dir / "__init__.py").write_text("", encoding="utf-8")
+    (pkg_dir / "mission.py").write_text(
+        "def register_gadgets(registry):\n    raise TypeError('boom: inside the hook body')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(dispatch, "BOND_ROOT", tmp_path)
+    from bond_api.registry import GadgetRegistry
+
+    registry = GadgetRegistry()
+    added = dispatch.register_film_gadgets(registry, "tst_typerr")
+    err = capsys.readouterr().err
+    assert added == 0
+    assert "boom: inside the hook body" in err  # the REAL error, diagnosed
+    assert "missing 1 required positional" not in err  # not the misleading one
+    assert registry.films() == ()
+
+
+def test_register_gadgets_hook_body_error_is_contained(tmp_path, monkeypatch):
+    """Sweep resilience: a film whose ``register_gadgets(registry)`` body raises
+    any exception contributes 0 and does not abort the whole-fleet sweep."""
+    pkg_dir = tmp_path / "tst_hookboom" / "src" / "tst_hookboom"
+    pkg_dir.mkdir(parents=True)
+    (pkg_dir / "__init__.py").write_text("", encoding="utf-8")
+    (pkg_dir / "mission.py").write_text(
+        "def register_gadgets(registry):\n    raise RuntimeError('Q-branch fire')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(dispatch, "BOND_ROOT", tmp_path)
+    from bond_api.registry import GadgetRegistry
+
+    registry = GadgetRegistry()
+    assert dispatch.register_film_gadgets(registry, "tst_hookboom") == 0
+    assert registry.films() == ()
+
+
+def test_register_gadgets_zero_arg_hook_via_signature(tmp_path, monkeypatch):
+    """A genuinely zero-arg ``register_gadgets()`` hook is still called (arity
+    read from signature, not guessed by catching TypeError)."""
+    pkg_dir = tmp_path / "tst_zeroarg" / "src" / "tst_zeroarg"
+    pkg_dir.mkdir(parents=True)
+    (pkg_dir / "__init__.py").write_text("", encoding="utf-8")
+    (pkg_dir / "mission.py").write_text(
+        "GADGETS: dict[str, str] = {}\n"
+        "def register_gadgets() -> None:\n"
+        "    GADGETS['sigzero'] = 'zero-arg via signature'\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(dispatch, "BOND_ROOT", tmp_path)
+    from bond_api.registry import GadgetRegistry
+
+    registry = GadgetRegistry()
+    assert dispatch.register_film_gadgets(registry, "tst_zeroarg") == 1
+    assert registry.gadgets_for("tst_zeroarg") == ("sigzero",)
+
+
+def test_register_gadgets_uninspectable_hook(tmp_path, monkeypatch, capsys):
+    """Regression: a film whose ``register_gadgets`` is a callable that cannot be
+    introspected (an invalid ``__signature__`` makes ``inspect.signature``
+    raise) must not crash discovery — it degrades to a diagnostic and 0."""
+    pkg_dir = tmp_path / "tst_unintp" / "src" / "tst_unintp"
+    pkg_dir.mkdir(parents=True)
+    (pkg_dir / "__init__.py").write_text("", encoding="utf-8")
+    (pkg_dir / "mission.py").write_text(
+        "def register_gadgets(registry):\n"
+        "    raise RuntimeError('should not be reached')\n"
+        "register_gadgets.__signature__ = 'not-a-signature'\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(dispatch, "BOND_ROOT", tmp_path)
+    from bond_api.registry import GadgetRegistry
+
+    registry = GadgetRegistry()
+    # Uninspectable -> falls back to calling with the registry; if that then
+    # raises, the whole call is contained (diagnostic, 0), never a traceback.
+    added = dispatch.register_film_gadgets(registry, "tst_unintp")
+    err = capsys.readouterr().err
+    assert added == 0
+    assert "tst_unintp" in err
+    assert registry.films() == ()
+
+
+def test_status_human_none_coverage_does_not_print_none(capsys, monkeypatch, tmp_path):
+    """Regression (defect E): with no manifest, the human status previously
+    printed ``min=None% max=None%``.  Both must render ``N/A`` like the mean."""
+    monkeypatch.setattr(dispatch, "GATE_MANIFEST", tmp_path / "absent.json")
+    code, out, _ = _run(capsys, ["status"])
+    assert code == 0
+    assert "min=N/A" in out
+    assert "max=N/A" in out
+    assert "None%" not in out
 
 
 def test_register_gadgets_module_without_hook():

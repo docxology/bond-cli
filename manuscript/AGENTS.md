@@ -4,7 +4,7 @@ type: "manuscript_guide"
 version: "3.0.0"
 ---
 
-# Manuscript (`projects/working/bond/bond-cli/manuscript/`)
+# Manuscript (`manuscript/`)
 
 Agent rules for this package live in [`../docs/agent_instructions.md`](../docs/agent_instructions.md).
 This file covers manuscript-specific editing: the section inventory, the

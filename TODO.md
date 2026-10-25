@@ -4,14 +4,13 @@
 commands that route to the four built sibling layers (`bond-utilities`,
 `bond-api`, `bond-coordinator`, `bond-orchestrator`) and map their outcomes to
 exit codes. It implements no mission logic and ships no `MissionProvider`.
-**Verified state today (2026-08-05, commit `b0e811a`, clean tree):**
-`uv run pytest tests/ --cov=src --cov-fail-under=90` → **103 passed,
-100.00 % line+branch coverage on `src/`** (352 statements, 92 branches, 0 missed,
-0 partial). The two headline contracts — exit codes and sorted JSON keys — are
+**Verified state:** the live test count and `src/` coverage figure live in
+[`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md), and the last full gate
+run is recorded in the Round-2 section at the bottom of this file. The two
+headline contracts — exit codes and sorted JSON keys — are
 mutation-checked in `tests/test_contracts.py`; the four findings from the
 adversarial audit (`output/verify/bond-cli.json`) were all confirmed closed
-against the current tree while writing this file, and
-`output/verify/bond-cli.unresolved.json` records nothing unresolved.
+against the tree while writing this file.
 
 ## Open work
 
@@ -229,8 +228,8 @@ uv run mypy src/ scripts/                            # clean
 ```
 
 Sandbox note: `uv` cannot write its cache under the default sandbox — re-run
-with the sandbox disabled if you see
-`Failed to initialize cache at /Users/4d/.cache/uv`.
+with the sandbox disabled if `uv` reports that it failed to initialize its
+cache.
 
 Smoke the real entry points and the determinism property by hand:
 

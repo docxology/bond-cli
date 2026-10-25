@@ -7,9 +7,11 @@ layers and maps their outcomes to exit codes.
 **Manuscript identity:** `BOND-CLI` · codename **THE FRONT DOOR** · Layer 4 ·
 version 3.0.0.
 
-This is a **local-only** working tree (no remote, never pushed). `bond-cli`
-delegates everything to the sibling layers it depends on and implements none of
-their logic — it ships no `MissionProvider` and no mission mathematics.
+This repository is published at `github.com/docxology/bond-cli` and expects the
+four built sibling layers checked out beside it (path sources in
+`pyproject.toml`). `bond-cli` delegates everything to the sibling layers it
+depends on and implements none of their logic — it ships no `MissionProvider`
+and no mission mathematics.
 
 ## The film/concept mapping
 
@@ -125,6 +127,12 @@ uv run ruff check src/ scripts/ tests/
 uv run ruff format --check src/ scripts/ tests/
 uv run mypy src/ scripts/
 ```
+
+The gate needs two preconditions of its own: the fleet workspace on disk (real
+film packages at `<bond root>/<slug>/src`, as `bond_orchestrator.film_providers`
+also expects) and Python ≥ 3.14 — `tests/test_contracts.py` annotates a
+generated provider method with an unimported protocol name, which only PEP 649
+lazy annotations accept.
 
 Zero mocks: real film providers (`sable`, `goldfinger`, `skyfall`), real
 importable film packages written to `tmp_path`, real gate manifests, and real

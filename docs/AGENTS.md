@@ -1,6 +1,6 @@
 # docs/ — Agent-Facing Documentation Hub
 
-Technical guide for `projects/working/bond/bond-cli/docs/` — the operational
+Technical guide for `docs/` — the operational
 rulebook for agents working inside the front door. Every document here is a
 hard constraint, not a suggestion.
 

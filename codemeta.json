@@ -10,7 +10,7 @@
       "givenName": "Daniel Ari"
     }
   ],
-  "codeRepository": null,
+  "codeRepository": "https://github.com/docxology/bond-cli",
   "dateCreated": "2026-08-04",
   "keywords": ["project-bond", "front-door", "command-line-interface", "mission-orchestration"],
   "license": "https://spdx.org/licenses/MIT",

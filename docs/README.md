@@ -23,4 +23,4 @@ narrative, and `../README.md` holds the operator quick-start.
 | What does a command do? | `src/bond_cli/dispatch.py` docstrings, then `../README.md` |
 | What number may prose state? | `src/bond_cli/manuscript_variables.py` → a `{{TOKEN}}` (and `../data/claim_ledger.yaml`, re-derived by the suite) |
 | What is still open? | `../TODO.md` |
-| What is the fleet-wide contract? | `../../bond-api/` (the frozen protocol) and `../../SCOPE.md` |
+| What is the fleet-wide contract? | `../../bond-api/` (the frozen protocol) |

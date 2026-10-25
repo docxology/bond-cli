@@ -2,10 +2,10 @@
 
 ## In-suite packages (the {{LAYER_COUNT}} built layers this front door consumes)
 
-- **bond-utilities — Q-BRANCH**: ciphers, codenames, clocks, deterministic randomness, mission IO (in-repo, `projects/working/bond/bond-utilities`).
-- **bond-api — THE PROTOCOL**: the frozen `MissionProvider` contract, discovery, and the `GadgetRegistry` (in-repo, `projects/working/bond/bond-api`).
-- **bond-coordinator — MISSION CONTROL**: the {{FILM_COUNT}}-film registry, mission ledger, and suite status (in-repo, `projects/working/bond/bond-coordinator`).
-- **bond-orchestrator — DAG 00**: the multi-package mission runner with checkpoint/resume and provenance, and the {{MISSION_COUNT}} canned missions (in-repo, `projects/working/bond/bond-orchestrator`).
+- **bond-utilities — Q-BRANCH**: ciphers, codenames, clocks, deterministic randomness, mission IO (sibling package, `../bond-utilities`).
+- **bond-api — THE PROTOCOL**: the frozen `MissionProvider` contract, discovery, and the `GadgetRegistry` (sibling package, `../bond-api`).
+- **bond-coordinator — MISSION CONTROL**: the {{FILM_COUNT}}-film registry, mission ledger, and suite status (sibling package, `../bond-coordinator`).
+- **bond-orchestrator — DAG 00**: the multi-package mission runner with checkpoint/resume and provenance, and the {{MISSION_COUNT}} canned missions (sibling package, `../bond-orchestrator`).
 
 ## External standards and sources
 

@@ -1,6 +1,6 @@
 # Agent Instructions — bond-cli (THE FRONT DOOR)
 
-Read this before modifying any file in `projects/working/bond/bond-cli/`.
+Read this before modifying any file in this repository.
 These are hard constraints, and each states the consequence of violating it.
 
 ## Rule 1 — Delegate, never re-implement

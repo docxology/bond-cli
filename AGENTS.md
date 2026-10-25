@@ -1,7 +1,7 @@
 # AGENTS.md — bond-cli (PROJECT BOND · THE FRONT DOOR)
 
-Operational rules for AI agents and developers working inside
-`projects/working/bond/bond-cli/`. Read
+Operational rules for AI agents and developers working inside this repository.
+Read
 [`docs/agent_instructions.md`](docs/agent_instructions.md) first, then
 [`docs/architecture.md`](docs/architecture.md).
 

@@ -1,6 +1,6 @@
 # bond-cli layer contract
 version: "3.0.0"
-description: "Defines the module boundary rules for projects/working/bond/bond-cli."
+description: "Defines the module boundary rules for bond-cli (this repository)."
 
 layers:
   src/bond_cli/dispatch.py:

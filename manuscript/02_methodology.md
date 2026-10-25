@@ -8,7 +8,7 @@
 
 That tuple, `COMMANDS`, is the single source of the command surface: it drives help ordering, the manuscript token above, and the ledger row that the test suite re-derives. Two sibling tuples do the same job for the rest of the surface — `JSON_COMMANDS` ({{JSON_COMMANDS}}) names the commands accepting `--json`, and `DEPENDENCY_LAYERS` names the {{LAYER_COUNT}} built siblings ({{LAYER_NAMES}}) in dependency order. No count in this manuscript is written by hand; each is derived from the tuple or registry it describes.
 
-`load_film(slug)` uses the FROZEN `bond_api.discovery.load_provider` contract, searching the fleet directory (`projects/working/bond/<slug>/src`) and bond-api's reference `films/` directory, so a single code path serves both the {{FILM_COUNT}} built films and the reference film. Only directories that exist are passed to discovery, because the contract validates every search path it is given. A missing or malformed film raises a `CliError`, which the CLI turns into exit code 1.
+`load_film(slug)` uses the FROZEN `bond_api.discovery.load_provider` contract, searching the fleet directory (`<bond root>/<slug>/src`) and bond-api's reference `films/` directory, so a single code path serves both the {{FILM_COUNT}} built films and the reference film. Only directories that exist are passed to discovery, because the contract validates every search path it is given. A missing or malformed film raises a `CliError`, which the CLI turns into exit code 1.
 
 ## Per-command delegation
 

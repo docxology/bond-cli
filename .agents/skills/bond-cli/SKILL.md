@@ -9,9 +9,9 @@ tags: [project-bond, front-door, thin-orchestrator, mission-orchestration]
 
 # bond-cli
 
-Project-scoped skill for the in-repo terminal front door at
-`projects/working/bond/bond-cli/` (PROJECT BOND Layer 4 · codename **THE FRONT
-DOOR**). Load when working inside the package.
+Project-scoped skill for the in-repo terminal front door in this repository
+(PROJECT BOND Layer 4 · codename **THE FRONT DOOR**). Load when working inside
+the package.
 
 ## When to Use
 
@@ -24,7 +24,7 @@ DOOR**). Load when working inside the package.
 ## Quick Reference
 
 ```bash
-cd projects/working/bond/bond-cli
+cd <bond root>/bond-cli
 uv sync --extra dev
 uv run pytest tests/ --cov=src --cov-fail-under=90
 

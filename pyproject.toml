@@ -16,7 +16,7 @@ description = "PROJECT BOND unified terminal front door: brief/recon/plan/execut
 authors = [
     {name = "Daniel Ari Friedman", email = "daniel@activeinference.institute"}
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "bond-api",
     "bond-coordinator",

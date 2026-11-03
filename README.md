@@ -7,11 +7,11 @@ layers and maps their outcomes to exit codes.
 **Manuscript identity:** `BOND-CLI` · codename **THE FRONT DOOR** · Layer 4 ·
 version 3.0.0.
 
-This repository is published at `github.com/docxology/bond-cli` and expects the
-four built sibling layers checked out beside it (path sources in
-`pyproject.toml`). `bond-cli` delegates everything to the sibling layers it
-depends on and implements none of their logic — it ships no `MissionProvider`
-and no mission mathematics.
+This repository is published at `github.com/docxology/bond-cli` and carries the
+four built layers it depends on as vendored copies under `vendor/` (directory
+sources in `pyproject.toml`), so it resolves in any clone. `bond-cli` delegates
+everything to the layers it depends on and implements none of their logic — it
+ships no `MissionProvider` and no mission mathematics.
 
 ## The film/concept mapping
 

@@ -38,7 +38,7 @@ dev = [
 [project.scripts]
 bond = "bond_cli.dispatch:main"
 
-# Built sibling layers resolved from the local BOND workspace (never published).
+# Built layers vendored under vendor/ as byte-identical copies (never published).
 [tool.uv.sources]
 bond-api = { path = "vendor/bond-api" }
 bond-coordinator = { path = "vendor/bond-coordinator" }

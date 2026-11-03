@@ -40,10 +40,10 @@ bond = "bond_cli.dispatch:main"
 
 # Built sibling layers resolved from the local BOND workspace (never published).
 [tool.uv.sources]
-bond-api = { path = "../bond-api" }
-bond-coordinator = { path = "../bond-coordinator" }
-bond-orchestrator = { path = "../bond-orchestrator" }
-bond-utilities = { path = "../bond-utilities" }
+bond-api = { path = "vendor/bond-api" }
+bond-coordinator = { path = "vendor/bond-coordinator" }
+bond-orchestrator = { path = "vendor/bond-orchestrator" }
+bond-utilities = { path = "vendor/bond-utilities" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -72,6 +72,8 @@ exclude_lines = [
 ]
 
 [tool.mypy]
+# Vendored copies are a dependency; their bytes are bound by scripts/vendor.py.
+exclude = ["(^|/)vendor/"]
 python_version = "3.12"
 mypy_path = ["src"]
 explicit_package_bases = true
@@ -90,6 +92,10 @@ module = [
     "bond_utilities.*",
 ]
 ignore_missing_imports = true
+
+[tool.ruff]
+# The vendored copies are byte-identical to upstream and must stay that way.
+extend-exclude = ["vendor"]
 
 [tool.ruff.lint]
 # Self-contained rule set so the monorepo root's config cannot leak in.

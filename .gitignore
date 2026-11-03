@@ -10,3 +10,6 @@ __pycache__/
 
 # Regenerable artifacts
 output/
+
+# Build output the vendored copies' own builds write into vendor/.
+vendor/**/build/

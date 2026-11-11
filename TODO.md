@@ -344,3 +344,93 @@ the F1/F2 fixes and a note on the three round-2 verification bindings).
 - **E1** — `--json` on `gadgets` and `run` (unchanged from the pre-existing
   backlog above).
 - **E2** — shell completion for `bond` (unchanged).
+
+## Workflowz review — 2026-11-10
+
+### Correctness
+
+**W1 — P1 — Make each film's gadget registration atomic when discovery fails.**
+
+*Evidence:* `register_film_gadgets` records only a count before invoking hooks (`src/bond_cli/dispatch.py:586-596`), then returns 0 from the registration-error handler without removing entries already added to the shared registry (`src/bond_cli/dispatch.py:616-624`). `cmd_gadgets` subsequently treats any remaining names as success (`src/bond_cli/dispatch.py:636-645`). Thus a real hook that calls `registry.register(...)` and then raises emits an error diagnostic but can still make the film and its partial gadget set appear successfully registered. Existing failure tests raise before registering anything and therefore cannot expose this state leak (`tests/test_dispatch.py:204-249`). This contradicts the documented contract that a failing film contributes zero and cannot corrupt the fleet sweep (`docs/architecture.md:84-97`).
+
+*Done looks like:* isolate or roll back all mutations for the current slug when any import/registration step raises; preserve entries for other films, retain the stderr diagnostic and best-effort sweep behavior, and add a real tmp-film regression whose hook registers one gadget and then raises. Single-film and fleet output must not expose the partial registration.
+
+*Dependencies/constraints:* use the public `bond_api.registry.GadgetRegistry` surface; do not narrow the intentional broad exception containment or turn a broken film into a fleet-wide abort.
+
+*Demonstrate:*
+```bash
+uv run pytest tests/test_dispatch.py -k partial_registration -v
+# Expected: the new regression passes; the failed slug contributes no registry rows,
+# stderr names the original exception, and unrelated films remain registered.
+```
+
+**W2 — P1 — Reject non-finite measured coverage before producing JSON.**
+
+*Evidence:* `_measured_coverage` accepts every `int`/`float` other than `bool` and converts it directly to `float` (`src/bond_cli/dispatch.py:289-296`). Python's JSON decoder accepts `NaN`, `Infinity`, and `-Infinity` by default in `_manifest_rows` (`src/bond_cli/dispatch.py:299-313`), and the CLI's default `json.dumps` settings emit those tokens again through measured `whois`, `status`, and `roster-export` payloads (`src/bond_cli/dispatch.py:345-375`, `:454-477`, `:511-525`). Those tokens are not RFC 8259 JSON and can also poison status aggregates. Current edge tests cover zero, strings, and booleans but no non-finite numbers (`tests/test_hardening.py:38-76`).
+
+*Done looks like:* non-finite manifest coverage is treated as unavailable (`None`/JSON `null`), while measured `0.0` remains valid; add parameterized `NaN`/positive-infinity/negative-infinity regressions and parse emitted bytes with a strict JSON decoder that rejects non-standard constants. Prefer strict output encoding as a backstop so future numeric fields cannot silently emit non-RFC JSON.
+
+*Dependencies/constraints:* preserve the existing malformed-manifest degradation and do not reject finite coverage solely for being integer-valued.
+
+*Demonstrate:*
+```bash
+uv run pytest tests/test_hardening.py tests/test_contracts.py -k 'non_finite or strict_json' -v
+# Expected: all three non-finite inputs report null/unknown coverage and every
+# emitted status/whois/roster payload is accepted by the strict JSON parser.
+```
+
+### Verification
+
+**W3 — P2 — Pin gate manifests in the subprocess determinism tests.**
+
+*Evidence:* the layer contract requires tests to pin `dispatch.GATE_MANIFEST` so ambient fleet state cannot change results (`manuscript/layer_contract.yaml:31-35`; `tests/AGENTS.md:22-26`). The two repeat-run tests instead invoke fresh `scripts/bond.py` subprocesses through `_run_script`, which supplies no isolated manifest (`tests/test_scripts_smoke.py:10-22`, `:65-94`). Both commands read the real workspace manifest by default (`src/bond_cli/dispatch.py:56-63`, `:328-340`, `:506-525`), so a fleet gate writing between the two processes can make the determinism tests fail even though the CLI is deterministic.
+
+*Done looks like:* each subprocess in the byte-identity comparisons uses the same real temporary gate manifest (with explicit absent and present cases as appropriate), while still exercising the actual script entry point and comparing raw stdout bytes. The test must not depend on whether `<bond root>/output/aggregate/gate_manifest.json` exists or changes.
+
+*Dependencies/constraints:* retain separate-process execution and the zero-mock/real-manifest doctrine; do not weaken the assertions to parsed JSON equality or remove the determinism checks.
+
+*Demonstrate:*
+```bash
+uv run pytest tests/test_scripts_smoke.py -k byte_identical -v
+# Expected: both repeat-run tests pass with their temporary manifest pinned;
+# inspection of the helpers shows no read of the ambient aggregate manifest.
+```
+
+**W4 — P2 — Align the exact development interpreter and regenerate stale lock metadata.**
+
+*Evidence:* the development pin is the unpatched `3.15` (`.python-version:1`), rather than the preferred exact CPython `3.15.2`. The project declares `requires-python = ">=3.11"` (`pyproject.toml:20`), but the generated lock declares `>=3.10` and retains a `python_full_version < '3.11'` resolution branch (`uv.lock:3-7`), including a bond-cli NumPy 2.2.6 dependency for interpreters the project no longer supports (`uv.lock:71-80`). This leaves the checked-in environment metadata inconsistent with the manifest.
+
+*Done looks like:* change `.python-version` from `3.15` to `3.15.2`, regenerate rather than hand-edit `uv.lock` from the current `pyproject.toml`, and confirm the lock's lower bound is `>=3.11` with no bond-cli pre-3.11 dependency fork. Keep the published package floor at `>=3.11`; the README's Python >=3.14 requirement is specifically for the PEP 649 test suite (`README.md:127-132`) and is not evidence for narrowing package runtime support.
+
+*Dependencies/constraints:* requires the four declared sibling path sources and uv; no dependency version refresh is requested beyond what regeneration necessarily records.
+
+*Demonstrate:*
+```bash
+uv lock --check && uv run python -c 'import platform; assert platform.python_version() == "3.15.2", platform.python_version()'
+# Expected: the lock is current and the project interpreter reports exactly 3.15.2.
+```
+
+### Documentation
+
+**W5 — P2 — Remove closed Round-2 findings from `Open work`.**
+
+*Evidence:* C1, C2, V1, V2, and V3 are still presented as open defects/gaps (`TODO.md:15-127`), but the same file records C1/C2 as fixed under F3/F4 and V1/V2/V3 as closed with named regression tests (`TODO.md:279-318`). The final future-work list correctly retains only E1 and E2 (`TODO.md:342-346`). The contradictory sections make the backlog unsuitable for choosing remaining work.
+
+*Done looks like:* remove or archive the five closed entries from `Open work`, preserve their Round-2 evidence, and leave genuinely open E1/E2 plus newly reviewed items visible exactly once. Update any stale source-line quotations moved into history rather than presenting them as current defects.
+
+*Dependencies/constraints:* documentation only; do not close E1 or E2 or delete the mutation/regression evidence from Round 2.
+
+*Demonstrate:*
+```bash
+python - <<'PY'
+from pathlib import Path
+text = Path('TODO.md').read_text(encoding='utf-8')
+open_work = text.split('## Open work', 1)[1].split('## Known limitations', 1)[0]
+for item in ('C1', 'C2', 'V1', 'V2', 'V3'):
+    assert f'**{item} ' not in open_work, f'{item} is closed but still listed as open'
+for item in ('E1', 'E2'):
+    assert f'**{item} ' in open_work, f'{item} must remain open'
+print('Open work matches the recorded closure state')
+PY
+# Expected: the probe exits 0 and prints the confirmation line.
+```

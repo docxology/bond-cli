@@ -13,6 +13,28 @@ four built sibling layers checked out beside it (path sources in
 depends on and implements none of their logic — it ships no `MissionProvider`
 and no mission mathematics.
 
+## Command routing
+
+```mermaid
+flowchart TD
+    accTitle: bond-cli verb-first command dispatch across BOND suite layers
+    accDescr: Terminal argv enters dispatch.py, which routes roster and gate queries to bond-coordinator, single-film lifecycle stages and gadget lookups to bond-api discovery, and multi-film DAG runs to bond-orchestrator, formatting deterministic tables or JSON via table.py with strict exit codes.
+    I["CLI argv: bond verb, film or mission target and --json or --output flags"]
+    G0["dispatch.py · bond_coordinator<br/>list, status, whois and roster-export (+ gate manifest)"]
+    G1["dispatch.py · bond_api<br/>brief, recon, plan, execute, debrief and gadgets via load_provider"]
+    G2["dispatch.py · bond_orchestrator<br/>missions and end-to-end DAG run"]
+    O["table.py and dispatch.py<br/>Color-safe fixed-width tables or key-sorted JSON on stdout; exit code 0, 1 or 2"]
+
+    I --> G0
+    I --> G1
+    I --> G2
+    G0 --> O
+    G1 --> O
+    G2 --> O
+```
+
+**Source map:** [`dispatch.py`](src/bond_cli/dispatch.py), [`table.py`](src/bond_cli/table.py), [`manuscript_variables.py`](src/bond_cli/manuscript_variables.py).
+
 ## The film/concept mapping
 
 Every other package in the suite maps a *film* to software. This one maps the

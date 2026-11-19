@@ -38,12 +38,12 @@ dev = [
 [project.scripts]
 bond = "bond_cli.dispatch:main"
 
-# Built sibling layers resolved from the local BOND workspace (never published).
+# Built layers vendored under vendor/ as byte-identical copies (never published).
 [tool.uv.sources]
-bond-api = { path = "../bond-api" }
-bond-coordinator = { path = "../bond-coordinator" }
-bond-orchestrator = { path = "../bond-orchestrator" }
-bond-utilities = { path = "../bond-utilities" }
+bond-api = { path = "vendor/bond-api" }
+bond-coordinator = { path = "vendor/bond-coordinator" }
+bond-orchestrator = { path = "vendor/bond-orchestrator" }
+bond-utilities = { path = "vendor/bond-utilities" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -72,6 +72,8 @@ exclude_lines = [
 ]
 
 [tool.mypy]
+# Vendored copies are a dependency; their bytes are bound by scripts/vendor.py.
+exclude = ["(^|/)vendor/"]
 python_version = "3.12"
 mypy_path = ["src"]
 explicit_package_bases = true
@@ -91,9 +93,19 @@ module = [
 ]
 ignore_missing_imports = true
 
+[tool.ruff]
+# The vendored copies are byte-identical to upstream and must stay that way.
+extend-exclude = ["vendor"]
+
 [tool.ruff.lint]
 # Self-contained rule set so the monorepo root's config cannot leak in.
 # TRY004: the suite deliberately raises ValueError with actionable messages.
 # RUF001-3: ambiguous-unicode conflicts with legitimate typography (en dashes).
 select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM", "PLW", "PERF", "RUF"]
 ignore = ["TRY004", "RUF001", "RUF002", "RUF003"]
+
+[tool.uv]
+# Single-source bond-api: vendor/bond-coordinator and vendor/bond-orchestrator
+# each declare their own vendored bond-api path; override resolves bond-api
+# exclusively from this repository's vendor/bond-api copy.
+override-dependencies = ["bond-api"]

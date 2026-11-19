@@ -1,0 +1,36 @@
+{
+  "package": "bond-coordinator",
+  "module_path": "src/bond_coordinator",
+  "source_repository": "docxology/bond-coordinator",
+  "sha": "d5426e649c929d7b7c9a185874834e0c700b85b1",
+  "copied_paths": [
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+    "src/bond_coordinator/__init__.py",
+    "src/bond_coordinator/gates.py",
+    "src/bond_coordinator/ledger.py",
+    "src/bond_coordinator/manuscript_variables.py",
+    "src/bond_coordinator/reconcile.py",
+    "src/bond_coordinator/registry.py",
+    "src/bond_coordinator/situation.py",
+    "src/bond_coordinator/status.py",
+    "src/bond_coordinator/types.py"
+  ],
+  "sha256": {
+    "LICENSE": "72f87c6cb562ffc6f870dc124d86b45ee0df5460e83fe8443d8e2ae65777e978",
+    "README.md": "a1f5b76c14be8ec8b61ef2126f33a1e6a0d0a890645797bb894230fb052e1057",
+    "pyproject.toml": "c892f22bf15efb0210938755afb2e626418b3a721aad30a47c9c0701a5bd8423",
+    "src/bond_coordinator/__init__.py": "42fe74bde60558e9b555d11ad18a444ed427630a8d7fb2ba6904fd29e1af364a",
+    "src/bond_coordinator/gates.py": "9a47d352de742bd6513d998be40a881aaa8ddbdbf7af3e7a80543a95229e58ee",
+    "src/bond_coordinator/ledger.py": "2382f3aa845c4bf4a110ad2f4ef2617664a52bf7db49785a09fd4dd73bb78e39",
+    "src/bond_coordinator/manuscript_variables.py": "8b0657401bae716fe645b7e95fe7dc40c214e8466407d98f72b7c0faae065758",
+    "src/bond_coordinator/reconcile.py": "904cd6eba76c61f684f0bd54fb85a7ea9de30404bf6e0f54b5c1de8e94800eb3",
+    "src/bond_coordinator/registry.py": "36d969801f9ea0671feaf35242f3599226472b26f2531768547c47e49140cd60",
+    "src/bond_coordinator/situation.py": "4202fa9fbb23367fb851b53a8eefe1839bd9cfa1e5aa376f10d120d07edb21b2",
+    "src/bond_coordinator/status.py": "ed6198caf7dfcebc2575e4c34c3a64bf6a72b04c06c07c2d8fc6e4c9c156cd5b",
+    "src/bond_coordinator/types.py": "729a3bb016f4165decf2ae6ae655e0610e54f4ae66b5043fa70b8f7dc96072fe"
+  },
+  "aggregate_sha256": "096d7e86f125ba3a5b6965a24a06b4a8cc37951fda443db8f422cfc02dfa5a50",
+  "checker_sha256": "4ffc6242a5b8af23f995f9db32cd71a661dce72fb3821c835c149c35cdbf7bbc"
+}

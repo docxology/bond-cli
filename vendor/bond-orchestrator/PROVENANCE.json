@@ -1,0 +1,42 @@
+{
+  "package": "bond-orchestrator",
+  "module_path": "src/bond_orchestrator",
+  "source_repository": "docxology/bond-orchestrator",
+  "sha": "04311a34b308ec618d6054d7324337c507418ec0",
+  "copied_paths": [
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+    "src/bond_orchestrator/__init__.py",
+    "src/bond_orchestrator/cli.py",
+    "src/bond_orchestrator/film_providers.py",
+    "src/bond_orchestrator/graph.py",
+    "src/bond_orchestrator/manuscript_variables.py",
+    "src/bond_orchestrator/missions.py",
+    "src/bond_orchestrator/planning.py",
+    "src/bond_orchestrator/protocol.py",
+    "src/bond_orchestrator/provenance.py",
+    "src/bond_orchestrator/providers.py",
+    "src/bond_orchestrator/retry.py",
+    "src/bond_orchestrator/runner.py"
+  ],
+  "sha256": {
+    "LICENSE": "72f87c6cb562ffc6f870dc124d86b45ee0df5460e83fe8443d8e2ae65777e978",
+    "README.md": "354990ee995fb48e94889ce93546ba5984ec9d9b1f8f015dd080ee966bb0ae89",
+    "pyproject.toml": "bcd13587645e32b4fadb315e8676ad539f0c0727e788664f50a58eb74449aa86",
+    "src/bond_orchestrator/__init__.py": "b6d00170dc701869e8e64bba04b995a892f41972238047550f0040ca0c3fada7",
+    "src/bond_orchestrator/cli.py": "d6e8c6acfc5a560e1aac1d3d3a263530bdd187d455fa70ecad447a8b0f8b8fdc",
+    "src/bond_orchestrator/film_providers.py": "c5b99f110d59cb71755e83506a3021b1bf8ee384aaa2d65c4d79595a3f399faa",
+    "src/bond_orchestrator/graph.py": "066ffde30ed6fa11168c7fa110fc141a0805bd504250979e57cdec219e76a122",
+    "src/bond_orchestrator/manuscript_variables.py": "021ac93ced96252649c71c95099feb02da87606a057a729abec030145c62e4de",
+    "src/bond_orchestrator/missions.py": "0ff705a2712ae6a3a11eb601eb60187725502f4b92e7cea6c4455d58f097f1ef",
+    "src/bond_orchestrator/planning.py": "c8c3646a46126f3e91e15cb3c8b6a703c8f83b2e1860db24efca915bfa5dfd40",
+    "src/bond_orchestrator/protocol.py": "088a7e951d50a5b6c51ba5646d8e6e59c9a202fce5604881ba4cc54b1d0dddee",
+    "src/bond_orchestrator/provenance.py": "5507f10dd7cc55cbd48de04eea1728b4595d1bd28771e83f3aa50267d3efee13",
+    "src/bond_orchestrator/providers.py": "816c8a244e13dd0ad1c3abb98d44fa0dd2add2f2f839f18c251f0320da2ed6e8",
+    "src/bond_orchestrator/retry.py": "27ef4e081b23a0507608faf8a257c109b3084d9ca7a1470d3b3d85ba26859516",
+    "src/bond_orchestrator/runner.py": "f389644f37074cf77be664aeeda7e392b636d2cff6fefe6062d37dea24389e69"
+  },
+  "aggregate_sha256": "f2a7c29bd5672b7b07bb34373dc44f95c284b73193603c8b5a9b64aada44c94f",
+  "checker_sha256": "4ffc6242a5b8af23f995f9db32cd71a661dce72fb3821c835c149c35cdbf7bbc"
+}

@@ -1,11 +1,13 @@
 # TODO — bond-cli (THE FRONT DOOR)
 
+Dated review notes record paths and line numbers from the revisions they inspected.
+
 `bond-cli` is the Layer-4 terminal front door of PROJECT BOND: twelve verb-first
 commands that route to the four built sibling layers (`bond-utilities`,
 `bond-api`, `bond-coordinator`, `bond-orchestrator`) and map their outcomes to
 exit codes. It implements no mission logic and ships no `MissionProvider`.
 **Verified state:** the live test count and `src/` coverage figure live in
-[`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md), and the last full gate
+[`docs/_generated/COUNTS.md`](_generated/COUNTS.md), and the last full gate
 run is recorded in the Round-2 section at the bottom of this file. The two
 headline contracts — exit codes and sorted JSON keys — are
 mutation-checked in `tests/test_contracts.py`; the four findings from the
@@ -41,7 +43,7 @@ same wording as `brief`/`plan`); an import failure emits a diagnostic on stderr
 naming the exception while still contributing 0 so the fleet sweep never aborts
 (the existing tolerance contract, unchanged); a clean film with no gadgets keeps
 today's message. Update the exit-code line in `README.md:44-46` and
-`manuscript/02_methodology.md:40` if the wording changes, and add a test that
+`docs/manuscript/02_methodology.md:40` if the wording changes, and add a test that
 distinguishes the three cases.
 
 *Demonstrate:*
@@ -69,9 +71,9 @@ nothing and exits 1.
 
 **V1 — the "byte-identical repeat run" claim is not bound by any test.**
 
-`manuscript/02_methodology.md:34` ("two runs against an unchanged fleet are
-byte-identical"), `manuscript/03_results.md:24`, and
-`manuscript/06_reproducibility.md:11` all assert it. I confirmed it holds by
+`docs/manuscript/02_methodology.md:34` ("two runs against an unchanged fleet are
+byte-identical"), `docs/manuscript/03_results.md:24`, and
+`docs/manuscript/06_reproducibility.md:11` all assert it. I confirmed it holds by
 hand today (`roster-export` twice and `status --json` twice, `cmp` clean both
 times), but no test asserts it. Adding a `"generated_at": time.time()` field to
 any JSON payload would keep the entire suite green and coverage at 100 %,
@@ -91,7 +93,7 @@ watch the test go red, then record the mutation in
 **V2 — the `bond` console-script entry point is never exercised.**
 
 `pyproject.toml:38-39` declares `bond = "bond_cli.dispatch:main"`.
-`README.md:93-94`, `AGENTS.md:57`, and `manuscript/05_experimental_setup.md:4`
+`README.md:93-94`, `AGENTS.md:57`, and `docs/manuscript/05_experimental_setup.md:4`
 all claim it is identical to the `scripts/bond.py` bootstrap and returns the
 same exit codes. `tests/test_scripts_smoke.py` invokes only `scripts/bond.py`
 (six tests, all via `_run_script`). Renaming `main`, or mistyping the target
@@ -103,7 +105,7 @@ match `scripts/bond.py` for the same argv.
 
 *Demonstrate:* `uv run pytest tests/test_scripts_smoke.py -k console -v`
 
-**V3 — `manuscript/layer_contract.yaml` is prose, not a gate.**
+**V3 — `docs/manuscript/layer_contract.yaml` is prose, not a gate.**
 
 Several of its `cross_cutting:` rules are genuinely enforced by tests (sorted
 JSON keys, no ANSI, exit codes, the re-derived claim ledger). Three are not
@@ -119,7 +121,7 @@ enforced anywhere and are true today only by inspection:
 - "No terminal-width probing and no environment reads" (`table.py` row) — same
   grep, no `os.environ` / `getenv` / `shutil.get_terminal_size` in `src/`.
 
-*Done looks like:* one test that reads `manuscript/layer_contract.yaml` and
+*Done looks like:* one test that reads `docs/manuscript/layer_contract.yaml` and
 asserts these three mechanically checkable rules against the `src/` and
 `scripts/` sources, so adding `import datetime` to `dispatch.py` fails the
 suite instead of silently falsifying the manuscript.
@@ -160,8 +162,8 @@ debrief, both key-sorted, with a raw-text key-order assertion in
 `tests/test_contracts.py` matching the existing five.
 
 *Demonstrate:*
-`uv run python scripts/bond.py run OPERATION_SINGLET --json | python -c 'import json,sys; json.load(sys.stdin)'`
-and `uv run pytest tests/ --cov=src --cov-fail-under=90`.
+a synthetic fixture that emits a mission summary, followed by JSON parsing and a
+check of its exit code.
 
 **E2 — shell completion.**
 
@@ -309,7 +311,7 @@ assert `out == ""` on failure and the message on `err`.
   `list`, so a mistyped `pyproject.toml` entry target fails the suite
   (`test_console_script_matches_bootstrapper`).
 - **V3 — the layer contract is now a gate.** `test_layer_contract_prohibited_imports_are_gated`
-  reads `manuscript/layer_contract.yaml`, requires the three mechanically
+  reads `docs/manuscript/layer_contract.yaml`, requires the three mechanically
   checkable `cross_cutting` rules to be present in the YAML, and asserts the
   `src/` + `scripts/` trees carry no `infrastructure.*`, no wall-clock
   (`import time`/`datetime`/`.now()`), and no terminal-width/environment reads.
@@ -383,7 +385,7 @@ uv run pytest tests/test_hardening.py tests/test_contracts.py -k 'non_finite or 
 
 **W3 — P2 — Pin gate manifests in the subprocess determinism tests.**
 
-*Evidence:* the layer contract requires tests to pin `dispatch.GATE_MANIFEST` so ambient fleet state cannot change results (`manuscript/layer_contract.yaml:31-35`; `tests/AGENTS.md:22-26`). The two repeat-run tests instead invoke fresh `scripts/bond.py` subprocesses through `_run_script`, which supplies no isolated manifest (`tests/test_scripts_smoke.py:10-22`, `:65-94`). Both commands read the real workspace manifest by default (`src/bond_cli/dispatch.py:56-63`, `:328-340`, `:506-525`), so a fleet gate writing between the two processes can make the determinism tests fail even though the CLI is deterministic.
+*Evidence:* the layer contract requires tests to pin `dispatch.GATE_MANIFEST` so ambient fleet state cannot change results (`docs/manuscript/layer_contract.yaml:31-35`; `tests/AGENTS.md:22-26`). The two repeat-run tests instead invoke fresh `scripts/bond.py` subprocesses through `_run_script`, which supplies no isolated manifest (`tests/test_scripts_smoke.py:10-22`, `:65-94`). Both commands read the real workspace manifest by default (`src/bond_cli/dispatch.py:56-63`, `:328-340`, `:506-525`), so a fleet gate writing between the two processes can make the determinism tests fail even though the CLI is deterministic.
 
 *Done looks like:* each subprocess in the byte-identity comparisons uses the same real temporary gate manifest (with explicit absent and present cases as appropriate), while still exercising the actual script entry point and comparing raw stdout bytes. The test must not depend on whether `<bond root>/output/aggregate/gate_manifest.json` exists or changes.
 

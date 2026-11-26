@@ -10,11 +10,11 @@
 - **Environment-independent tests.** The fleet's aggregate gate manifest lives outside this package and appears or disappears as the fleet gate runs; every test that depends on it pins `dispatch.GATE_MANIFEST` at a temporary file, so the suite's result and its branch coverage do not move with the workspace's state.
 - **Tests as evidence.** The suite runs real subprocess invocations against the real packages and asserts byte-stable command output wherever the layers beneath are deterministic. In particular, `status --json` and `roster-export` are each invoked twice in separate subprocesses and asserted byte-identical, binding the repeatability claim to a test rather than to inspection; and the installed `bond` console script is exercised in a subprocess and its stdout/exit code asserted equal to the `scripts/bond.py` bootstrap, so the declared `pyproject.toml` entry point cannot silently rot.
 
-To reproduce the whole surface from a clean checkout:
+To reproduce token generation and the registry status output from a clean checkout:
 
 ```bash
-uv sync --extra dev
-uv run pytest tests/ --cov=src --cov-fail-under=90
+uv sync --locked --extra dev
+uv run --no-sync pytest --no-cov tests/test_manuscript_variables.py tests/test_hardening.py tests/test_scripts_smoke.py
 uv run python scripts/z_generate_manuscript_variables.py
 uv run python scripts/bond.py status --json
 ```

@@ -2,7 +2,7 @@
 """Thin orchestrator: generate the manuscript ``{{TOKEN}}`` map and persist it.
 
 Delegates to :func:`bond_cli.manuscript_variables.generate_variables`, which
-reads identity tokens from ``manuscript/config.yaml`` and fleet tokens from the
+reads identity tokens from ``docs/manuscript/config.yaml`` and fleet tokens from the
 built coordinator registry, then writes
 ``output/variables/manuscript_variables.json`` (sorted keys, deterministic).
 """

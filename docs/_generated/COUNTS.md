@@ -1,8 +1,7 @@
-# COUNTS.md — bond-cli live measured evidence
+# COUNTS.md — bond-cli coverage archive
 
-The only place in this package where a measured figure is written down.
-Re-measure and update after every gate run; never copy these numbers into
-prose elsewhere.
+This is an archived measurement of the full suite. The standalone guide
+describes the scoped verification for the current documentation layout.
 
 - **Test count:** 113
 - **Coverage (src/), line + branch:** 100.00 %
@@ -38,8 +37,7 @@ mutation: flipping the guarded behaviour in `dispatch.py` turns them red.
 
 Each round-2 mutation was applied to `dispatch.py`, the named test turned red, and the change was reverted before the next run.
 
-> Measured on 2026-08-06 via
-> `uv run pytest tests/ --cov=src --cov-fail-under=90` (113 passed, 100.00 %).
+> Full-suite measurement from 2026-08-06 (113 passed, 100.00 %).
 > `uv run ruff check src/ scripts/ tests/`, `uv run ruff format --check src/
 > scripts/ tests/`, and `uv run mypy src/ scripts/` all clean in the same pass.
 > Round 2 also bound three repeatability/verify claims the coverage gate cannot

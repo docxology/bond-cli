@@ -27,7 +27,7 @@ no `infrastructure.*`.
 | `__init__.py` | Package identity. Assigns `__version__` **before** importing submodules, because `manuscript_variables` reads it as the `{{PACKAGE_VERSION}}` fallback during package init. Re-exports `dispatch` and `manuscript_variables`. |
 | `dispatch.py` | The whole front door: the command registries, twelve `cmd_*` handlers, film loading, gate-manifest reconciliation, tolerant gadget harvesting, the argparse surface, and `main() -> int`. |
 | `table.py` | `format_table(headers, rows) -> str` — fixed-width column alignment with **no ANSI**. Widths derive from header + cell text; columns join on two spaces; nothing is truncated or wrapped. Byte-identical for identical input (no terminal probing, no environment reads). |
-| `manuscript_variables.py` | The `{{TOKEN}}` map: identity from `manuscript/config.yaml`, fleet counts from the coordinator/orchestrator registries, surface counts from `dispatch`'s own tuples. Persists to `output/variables/manuscript_variables.json` (sorted keys). |
+| `manuscript_variables.py` | The `{{TOKEN}}` map: identity from `docs/manuscript/config.yaml`, fleet counts from the coordinator/orchestrator registries, surface counts from `dispatch`'s own tuples. Persists to `output/variables/manuscript_variables.json` (sorted keys). |
 
 ### `dispatch.py` in detail
 
@@ -142,7 +142,7 @@ with a traceback rather than being swallowed into a misleading exit code.
 | Re-hardcode the roster | Read `bond_coordinator.registry.ROSTER` |
 | Hand-author a count in prose or in `data/claim_ledger.yaml` | Derive it from a registry and expose it as a `{{TOKEN}}` |
 | Emit ANSI colour | `table.format_table` — the color-safe contract |
-| Mock a provider in tests | Use a real film (`sable`/`goldfinger`/`skyfall`) or a real tmp package |
+| Mock a provider in tests | Use the SABLE reference provider or a synthetic provider in a temporary package |
 
 ## Adding a command
 

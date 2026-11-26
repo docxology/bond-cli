@@ -4,9 +4,9 @@ The publishable narrative for the PROJECT BOND terminal front door.
 
 ## Sections
 
-`00_abstract.md`, `01_introduction.md`, `02_methodology.md`, `03_results.md`,
-`04_conclusion.md`, `05_experimental_setup.md`, `06_reproducibility.md`,
-`07_scope_and_related_work.md`, `99_references.md` — plus `preamble.md` (LaTeX
+[`00_abstract.md`](00_abstract.md), [`01_introduction.md`](01_introduction.md), [`02_methodology.md`](02_methodology.md), [`03_results.md`](03_results.md),
+[`04_conclusion.md`](04_conclusion.md), [`05_experimental_setup.md`](05_experimental_setup.md), [`06_reproducibility.md`](06_reproducibility.md),
+[`07_scope_and_related_work.md`](07_scope_and_related_work.md), [`99_references.md`](99_references.md) — plus `preamble.md` (LaTeX
 injections), `config.yaml` (identity, authors, render targets),
 `references.bib` (real external sources), `SYNTAX.md` (token + citation rules),
 `AGENTS.md` (editing rules), and `layer_contract.yaml` (module boundaries).
@@ -24,7 +24,7 @@ coordinator `ROSTER`, the orchestrator's `MISSION_NAMES`, and
 generated.
 
 Volatile measurements (test count, coverage %) are deliberately **not** tokens
-— they live only in `../docs/_generated/COUNTS.md`, and the prose names the
+— they live only in `../_generated/COUNTS.md`, and the prose names the
 gate command instead.
 
 ## Regenerate tokens
@@ -33,3 +33,7 @@ gate command instead.
 uv run python scripts/z_generate_manuscript_variables.py
 # → output/variables/manuscript_variables.json (sorted keys, deterministic)
 ```
+
+
+Follow the [rendering guide](../rendering.md) to prepare the resolved
+manuscript and build the PDF and HTML with the pinned renderer.

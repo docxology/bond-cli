@@ -6,7 +6,7 @@ version: "3.0.0"
 
 # Manuscript (`manuscript/`)
 
-Agent rules for this package live in [`../docs/agent_instructions.md`](../docs/agent_instructions.md).
+Agent rules for this package live in [`../agent_instructions.md`](../agent_instructions.md).
 This file covers manuscript-specific editing: the section inventory, the
 `{{TOKEN}}` protocol, and the citation bar.
 
@@ -28,7 +28,7 @@ This file covers manuscript-specific editing: the section inventory, the
 | `references.bib` | BibTeX entries — real, checkable sources only |
 | `SYNTAX.md` | Token table + citation syntax |
 | `README.md` | Human quick reference |
-| `layer_contract.yaml` | Module boundary rules mirrored from `../docs/architecture.md` |
+| `layer_contract.yaml` | Module boundary rules mirrored from `../architecture.md` |
 
 ## {{TOKEN}} protocol
 
@@ -40,7 +40,7 @@ value is countable, add a row to `data/claim_ledger.yaml` too; the suite
 re-derives every ledger row from its named source.
 
 Volatile measurements (test count, coverage %) must **not** become tokens. They
-belong in `../docs/_generated/COUNTS.md`; prose names the gate that produces
+belong in `../_generated/COUNTS.md`; prose names the gate that produces
 them.
 
 Run `uv run python scripts/z_generate_manuscript_variables.py` after any

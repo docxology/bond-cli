@@ -286,15 +286,17 @@ def test_json_commands_claim_is_enforced_by_the_parser():
 
 def test_paper_version_token_matches_config():
     config = yaml.safe_load(
-        (PROJECT_ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+        (PROJECT_ROOT / "docs" / "manuscript" / "config.yaml").read_text(
+            encoding="utf-8"
+        )
     )
     tokens = mv.build_tokens(PROJECT_ROOT)
     assert tokens["PACKAGE_VERSION"] == str(config["paper"]["version"])
 
 
 def test_read_identity_non_mapping_package_block(tmp_path):
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text("package: bond-cli\n", encoding="utf-8")
     assert mv.read_identity(tmp_path) == {
         "package_name": "bond-cli",
@@ -307,8 +309,8 @@ def test_read_paper_version_fallbacks(tmp_path):
 
     assert mv.read_paper_version(tmp_path) == __version__  # no config at all
 
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     config = manuscript / "config.yaml"
 
     config.write_text("- a list\n", encoding="utf-8")
@@ -387,7 +389,7 @@ def _collect_python_sources() -> str:
 
 
 def test_layer_contract_prohibited_imports_are_gated():
-    """V3: three ``cross_cutting`` rules in ``manuscript/layer_contract.yaml``
+    """V3: three ``cross_cutting`` rules in ``docs/manuscript/layer_contract.yaml``
     are checkable against the source trees.  If any is violated, this fails.
 
     - no ``infrastructure.*`` imports anywhere in ``src/`` or ``scripts/``;
@@ -395,7 +397,7 @@ def test_layer_contract_prohibited_imports_are_gated():
     - no terminal-width probing or environment reads.
     """
     contract = yaml.safe_load(
-        (PROJECT_ROOT / "manuscript" / "layer_contract.yaml").read_text(
+        (PROJECT_ROOT / "docs" / "manuscript" / "layer_contract.yaml").read_text(
             encoding="utf-8"
         )
     )

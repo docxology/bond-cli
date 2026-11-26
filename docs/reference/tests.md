@@ -16,5 +16,5 @@ Zero mocks; real providers, real files, real subprocesses.
 - `test_manuscript_variables.py` — token map + live manuscript cross-reference.
 - `test_scripts_smoke.py` — subprocess smoke of the `scripts/` entry points.
 
-Gate: `uv run pytest tests/ --cov=src --cov-fail-under=90`. Doctrine:
+Follow the [scoped verification commands](../standalone.md#verify-the-package). Doctrine:
 `../docs/testing_philosophy.md`.

@@ -23,18 +23,8 @@ the package.
 
 ## Quick Reference
 
-```bash
-cd <bond root>/bond-cli
-uv sync --extra dev
-uv run pytest tests/ --cov=src --cov-fail-under=90
-
-# ops-style verification
-uv run python scripts/bond.py list
-uv run python scripts/bond.py debrief goldfinger
-uv run python scripts/bond.py run OPERATION_SINGLET
-uv run python scripts/bond.py status
-uv run python scripts/bond.py gadgets skyfall
-```
+Follow the [standalone verification guide](../../../docs/standalone.md)
+for CLI and manuscript checks.
 
 ## Architecture
 
@@ -53,8 +43,7 @@ uv run python scripts/bond.py gadgets skyfall
 - **Delegate, don't duplicate.** The front door implements no mission logic;
   route to the layers.
 - **No mocks.** Use real film providers — reference `sable` (numpy-free, fast)
-  for the lifecycle, a real fleet film (`skyfall` has `register_gadgets`) for
-  gadgets; real subprocess for `scripts/bond.py` smoke.
+  for the lifecycle, a synthetic provider with a registration hook for gadgets; real subprocess for `scripts/bond.py` smoke.
 - **Search paths must exist.** `bond_api` validates that every provided search
   path is a directory — filter `_film_search_paths` to existing dirs (sable
   lives only under `bond-api/films`).

@@ -21,7 +21,7 @@ layers:
   src/bond_cli/manuscript_variables.py:
     role: "Manuscript token map"
     rules:
-      - "Identity + paper version tokens from manuscript/config.yaml (PyYAML)"
+      - "Identity + paper version tokens from docs/manuscript/config.yaml (PyYAML)"
       - "Fleet tokens from the coordinator ROSTER and orchestrator MISSION_NAMES"
       - "Surface tokens from dispatch.COMMANDS / JSON_COMMANDS / DEPENDENCY_LAYERS"
       - "Never emits a wall-clock value or a literal count"

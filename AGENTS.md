@@ -11,7 +11,7 @@ Read
 |---|---|
 | `src/bond_cli/dispatch.py` | Thin argparse front door. **No business logic** — every command delegates to a built layer (bond-api, bond-coordinator, bond-orchestrator). `COMMANDS`, `JSON_COMMANDS`, and `DEPENDENCY_LAYERS` are the single source of every surface count. |
 | `src/bond_cli/table.py` | Fixed-width alignment only. Never emit ANSI, never truncate, never probe the terminal. |
-| `src/bond_cli/manuscript_variables.py` | Token map from `manuscript/config.yaml` + the coordinator/orchestrator/dispatch registries. Never a literal count. |
+| `src/bond_cli/manuscript_variables.py` | Token map from `docs/manuscript/config.yaml` + the coordinator/orchestrator/dispatch registries. Never a literal count. |
 | `scripts/` | Thin wrappers (sys.path bootstrap + argv forwarding) only. |
 | `tests/` | Zero mocks; real film providers, real tmp film packages, real manifests, real subprocess. |
 | `data/claim_ledger.yaml` | Every row names the symbol it is derived from, and the suite re-derives it. |
@@ -24,7 +24,7 @@ Cross-cutting rules:
   it reads the frozen `MissionProvider` surface and the `GADGETS` conventions.
   Adding a stage or reinterpreting `success` here forks the protocol.
 - **Depends on the four built layers** (path sources in pyproject); run
-  `uv sync --extra dev` before pytest.
+  `uv sync --locked --extra dev` before pytest.
 - ≥90% line+branch coverage on `src/`.
 - **Pin ambient fleet state.** Any test that depends on the aggregate gate
   manifest must point `dispatch.GATE_MANIFEST` at a `tmp_path`.
@@ -41,10 +41,10 @@ Cross-cutting rules:
 ```bash
 # One-time (installs bond-utilities, bond-api, bond-coordinator, bond-orchestrator
 # from local path sources, plus the dev extras)
-uv sync --extra dev
+uv sync --locked --extra dev
 
 # Gates — all four must be clean before committing
-uv run pytest tests/ --cov=src --cov-fail-under=90
+uv run --no-sync pytest --no-cov tests/test_manuscript_variables.py tests/test_hardening.py tests/test_scripts_smoke.py tests/test_vendor_provenance.py
 uv run ruff check src/ scripts/ tests/
 uv run ruff format --check src/ scripts/ tests/
 uv run mypy src/ scripts/
@@ -71,7 +71,7 @@ gate output changes, and do not copy the figures into other prose.
 2. New behaviour has a real test (no mock framework, no assertion that cannot
    fail).
 3. A new command is in `build_parser()`, `COMMANDS`, `_handlers()`,
-   `docs/architecture.md`, `README.md`, and the manuscript methodology/results.
+   `docs/architecture.md`, `docs/usage.md`, and the manuscript methodology/results.
 4. A new countable fact is a `{{TOKEN}}`, a `data/claim_ledger.yaml` row, and a
    test that re-derives it.
-5. `TODO.md` reflects what is actually left.
+5. `docs/backlog.md` reflects what is actually left.

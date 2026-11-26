@@ -1,7 +1,7 @@
 """Contract tests for the two claims the rest of the suite could not falsify:
 the **exit-code** contract and the **sorted-JSON-keys** contract.
 
-Both are stated in `manuscript/02_methodology.md` and both were, before this
+Both are stated in `docs/manuscript/02_methodology.md` and both were, before this
 file existed, green by construction:
 
 * every ``return 0 if <predicate> else 1`` in :mod:`bond_cli.dispatch` could be

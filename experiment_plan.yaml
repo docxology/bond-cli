@@ -1,21 +1,27 @@
-# Advisory experiment plan for bond-cli (advisory only; no autonomous execution).
-commands:
-  - name: list
-    delegate: bond_coordinator.registry
-    expected: "27 film rows (rank, slug, title, year, codename)"
-  - name: brief/recon/plan/execute/debrief
-    delegate: bond_api discovery + provider
-    expected: "one protocol stage of a real film provider"
-  - name: run
-    delegate: bond_orchestrator runner
-    expected: "consolidated debrief; exit 0 iff all verdicts pass"
-  - name: status
-    delegate: bond_coordinator.status
-    expected: "suite snapshot (counts, coverage, blocked)"
-  - name: gadgets
-    delegate: bond_api.registry.GadgetRegistry
-    expected: "gadget payload names per film"
-exit_codes:
-  success: 0
-  command_failure: 1
-  argparse_misuse: 2
+# Advisory evaluation plan for the bond-cli front door.
+conditions:
+  - name: roster
+    role: reference
+    description: "Run list through the coordinator registry and verify roster order and film identity."
+  - name: film_lifecycle
+    role: proposed
+    description: "Run brief, recon, plan, execute, and debrief against the reference fixture discovered through bond-api."
+  - name: canned_mission
+    role: proposed
+    description: "Use a synthetic mission fixture to verify the consolidated debrief and verdict."
+  - name: measured_status
+    role: variant
+    description: "Read suite status with present, absent, and partial gate manifests."
+  - name: gadget_discovery
+    role: proposed
+    description: "Look up film gadget payload names through the bond-api registry."
+metrics:
+  primary:
+    name: command_contract_conformance
+    direction: maximize
+protocol: >-
+  Run the native checks against vendored layers and benign fixtures.
+  Verify delegated outputs, byte-stable JSON, and exit codes 0 for success,
+  1 for command failure, and 2 for argparse misuse or an unknown mission.
+baselines:
+  - roster

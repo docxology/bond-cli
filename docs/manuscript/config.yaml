@@ -2,7 +2,7 @@
 # Layer 4 · unified terminal CLI over the orchestrator/coordinator.
 # Loaded by scripts/z_generate_manuscript_variables.py ->
 # src/bond_cli/manuscript_variables.py: read_identity() reads the `package:`
-# block, read_paper_version() reads paper.version ({{PACKAGE_VERSION}}).
+# block, read_paper_version() reads paper.version for the package version token.
 
 package:
   name: "bond-cli"
@@ -24,8 +24,8 @@ authors:
 publication:
   doi: ""
   version_doi: ""
-  github_repository: ""
-  repository_url: ""
+  github_repository: "docxology/bond-cli"
+  repository_url: "https://github.com/docxology/bond-cli"
 
 keywords:
   - "command-line interface"

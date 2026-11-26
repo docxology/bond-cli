@@ -33,4 +33,4 @@ subprocess smoke of `scripts/`. Persistent cases are covered in-process
   unverified. When a claim matters, mutate the code that implements it and
   confirm the test goes red before believing it.
 
-Gate: `uv run pytest tests/ --cov=src --cov-fail-under=90`.
+See the [standalone verification guide](../docs/standalone.md#verify-the-package).

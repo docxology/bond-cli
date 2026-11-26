@@ -2,7 +2,7 @@
 
 Builds the ``{{TOKEN}}`` substitution map referenced by the manuscript prose.
 Identity tokens (package name, codename, version) come from
-``manuscript/config.yaml``; fleet-derived tokens come from the built
+``docs/manuscript/config.yaml``; fleet-derived tokens come from the built
 coordinator registry (the film roster) and the orchestrator's canned-mission
 registry; surface tokens come from the CLI's own deterministic command,
 JSON-flag, and dependency-layer registries in :mod:`bond_cli.dispatch`.
@@ -29,20 +29,28 @@ from .dispatch import (
     SUITE_NAME,
 )
 
-#: Defaults used when ``manuscript/config.yaml`` is absent (tests, drafts).
+#: Defaults used when ``docs/manuscript/config.yaml`` is absent (tests, drafts).
 _DEFAULT_IDENTITY = {
     "package_name": "bond-cli",
     "codename": CLI_CODENAME,
 }
 
 
+def _config_path(project_root: str | Path) -> Path:
+    root = Path(project_root)
+    canonical = root / "docs" / "manuscript" / "config.yaml"
+    if canonical.is_file():
+        return canonical
+    return root / "manuscript" / "config.yaml"
+
+
 def read_identity(project_root: str | Path) -> dict[str, str]:
-    """Read the manuscript identity from ``manuscript/config.yaml`` when present.
+    """Read the manuscript identity from ``docs/manuscript/config.yaml`` when present.
 
     Falls back to the package defaults (name + codename) when the config is
     absent, unreadable, or not a mapping.
     """
-    config_path = Path(project_root) / "manuscript" / "config.yaml"
+    config_path = _config_path(project_root)
     if not config_path.is_file():
         return dict(_DEFAULT_IDENTITY)
     try:
@@ -61,12 +69,12 @@ def read_identity(project_root: str | Path) -> dict[str, str]:
 
 
 def read_paper_version(project_root: str | Path) -> str:
-    """Read ``paper.version`` from ``manuscript/config.yaml``.
+    """Read ``paper.version`` from ``docs/manuscript/config.yaml``.
 
     Falls back to the package ``__version__`` when the config is absent,
     unreadable, not a mapping, or carries no ``paper.version``.
     """
-    config_path = Path(project_root) / "manuscript" / "config.yaml"
+    config_path = _config_path(project_root)
     if not config_path.is_file():
         return __version__
     try:
@@ -100,7 +108,7 @@ def build_tokens(project_root: str | Path) -> dict[str, str]:
     Sources, one per token family:
 
     - identity (``PACKAGE_NAME``/``CODENAME``/``PACKAGE_VERSION``) —
-      ``manuscript/config.yaml``;
+      ``docs/manuscript/config.yaml``;
     - fleet (``FILM_COUNT``, ``MISSION_*``) — the built coordinator registry
       and orchestrator mission registry;
     - surface (``COMMAND*``, ``JSON_COMMAND*``, ``LAYER_*``) — the dispatch

@@ -27,17 +27,35 @@ def test_read_identity_default_when_absent(tmp_path):
 
 
 def test_read_identity_from_config(tmp_path):
-    cfg = tmp_path / "manuscript"
-    cfg.mkdir()
+    cfg = tmp_path / "docs" / "manuscript"
+    cfg.mkdir(parents=True)
     (cfg / "config.yaml").write_text(
         "package:\n  name: foo\n  codename: BAR\n", encoding="utf-8"
     )
     assert mv.read_identity(tmp_path) == {"package_name": "foo", "codename": "BAR"}
 
 
+def test_config_prefers_canonical_path_and_supports_legacy_checkout(tmp_path):
+    legacy = tmp_path / "manuscript"
+    legacy.mkdir()
+    (legacy / "config.yaml").write_text(
+        "package: {name: legacy}\npaper: {version: '1.0'}\n", encoding="utf-8"
+    )
+    assert mv.read_identity(tmp_path)["package_name"] == "legacy"
+    assert mv.read_paper_version(tmp_path) == "1.0"
+
+    canonical = tmp_path / "docs" / "manuscript"
+    canonical.mkdir(parents=True)
+    (canonical / "config.yaml").write_text(
+        "package: {name: canonical}\npaper: {version: '2.0'}\n", encoding="utf-8"
+    )
+    assert mv.read_identity(tmp_path)["package_name"] == "canonical"
+    assert mv.read_paper_version(tmp_path) == "2.0"
+
+
 def test_read_identity_non_dict(tmp_path):
-    cfg = tmp_path / "manuscript"
-    cfg.mkdir()
+    cfg = tmp_path / "docs" / "manuscript"
+    cfg.mkdir(parents=True)
     (cfg / "config.yaml").write_text("- just\n- a list\n", encoding="utf-8")
     assert mv.read_identity(tmp_path)["package_name"] == "bond-cli"
 
@@ -61,7 +79,7 @@ def test_all_manuscript_tokens_generated():
     """Every {{TOKEN}} in the numbered prose sections resolves in build_tokens()."""
     tokens = mv.build_tokens(PROJECT_ROOT)
     assert tokens
-    numbered = sorted(PROJECT_ROOT.glob("manuscript/[0-9]*.md"))
+    numbered = sorted(PROJECT_ROOT.glob("docs/manuscript/[0-9]*.md"))
     assert numbered, "expected numbered manuscript sections"
     for md in numbered:
         text = md.read_text(encoding="utf-8")

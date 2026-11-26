@@ -34,7 +34,7 @@ the runner are all real.
 
 | Instead of a mock | The suite uses |
 |---|---|
-| a stub provider | the reference film `sable` (numpy-free, fast) and real fleet films `goldfinger` / `skyfall` |
+| a stub provider | the reference film `sable` and synthetic provider packages |
 | a fake film package | a real `<slug>/src/<slug>/mission.py` written into `tmp_path` and genuinely imported |
 | a fake gate manifest | a real JSON file on disk, with `GATE_MANIFEST` pointed at it |
 | a patched CLI entry | `subprocess.run([sys.executable, "scripts/bond.py", ...])` |
@@ -44,7 +44,7 @@ the runner are all real.
 
 | File | Focus |
 |---|---|
-| `test_dispatch.py` | The command surface end-to-end: the full roster from `list`, the five protocol stages against `sable` and `goldfinger`, `run` over real film adapters plus the real-`FilmProviderError` fallback, `status` (plain, blocked, measured, unmeasured, malformed manifest), `gadgets` for registering and non-registering films, and every exit-code path. |
+| `test_dispatch.py` | The command surface end-to-end: the full roster from `list`, the five protocol stages against reference and fleet fixtures, `run` over real film adapters plus the real-`FilmProviderError` fallback, `status` (plain, blocked, measured, unmeasured, malformed manifest), `gadgets` for registering and non-registering films, and every exit-code path. |
 | `test_deepening.py` | The Phase-4 surface: `missions`, `whois`, `roster-export`, the `--json` variants, color-safe table behaviour, and each gadget-registration convention driven through a real tmp film package. |
 | `test_contracts.py` | The two claims coverage could not see: the **exit-code** contract (a real film package whose `execute` genuinely fails, driven through `execute`, `debrief`, and a real one-package `Mission` under `run`, each paired with a passing positive control) and the **sorted-JSON-keys** contract (asserted against the raw emitted text via `object_pairs_hook`, with each handler's literal construction order pinned so the assertion cannot pass vacuously). Also the lesson-free debrief and the non-registry/non-dict `GADGETS` fall-through. |
 | `test_hardening.py` | The Phase-5 edges: measured `0.0` coverage preserved, non-numeric/boolean coverage rejected, partial manifests (unmeasured films keep registry records and report `measured: null`), malformed and package-key-less manifests, the unmeasured `roster-export` branch, a film that raises on import, optional `MissionBrief` sections, the token↔registry contract, and the claim ledger re-derived from its named sources. |
@@ -91,9 +91,7 @@ mutation table lives in [`_generated/COUNTS.md`](_generated/COUNTS.md).
 
 The gate is:
 
-```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90
-```
+Follow the [standalone verification commands](standalone.md#verify-the-package) for the scoped checks.
 
 line + branch, ≥90% on `src/`. Live test count and coverage % live in
 [`_generated/COUNTS.md`](_generated/COUNTS.md) — the only place a figure is

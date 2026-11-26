@@ -14,7 +14,7 @@ ships **no `MissionProvider`** — it is the fleet's protocol consumer.
   composed by `_measured_roster`.
 - `bond_cli/table.py` — color-safe aligned table rendering (no ANSI, no
   truncation, no terminal probing).
-- `bond_cli/manuscript_variables.py` — token map from `manuscript/config.yaml`
+- `bond_cli/manuscript_variables.py` — token map from `docs/manuscript/config.yaml`
   (identity + paper version) and the coordinator/orchestrator/dispatch
   registries; writes `output/variables/manuscript_variables.json`.
 

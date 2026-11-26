@@ -16,9 +16,9 @@ once, in the function below, derived from the symbol that owns it.
 | Token | Source |
 |---|---|
 | `{{SUITE_NAME}}` | `dispatch.SUITE_NAME` |
-| `{{PACKAGE_NAME}}` | `manuscript/config.yaml` → `package.name` |
-| `{{CODENAME}}` | `manuscript/config.yaml` → `package.codename` |
-| `{{PACKAGE_VERSION}}` | `manuscript/config.yaml` → `paper.version` (falls back to `bond_cli.__version__`) |
+| `{{PACKAGE_NAME}}` | `docs/manuscript/config.yaml` → `package.name` |
+| `{{CODENAME}}` | `docs/manuscript/config.yaml` → `package.codename` |
+| `{{PACKAGE_VERSION}}` | `docs/manuscript/config.yaml` → `paper.version` (falls back to `bond_cli.__version__`) |
 | `{{FILM_COUNT}}` | length of the coordinator registry `ROSTER` |
 | `{{COMMANDS}}` | `dispatch.COMMANDS`, joined |
 | `{{COMMAND_COUNT}}` | length of `dispatch.COMMANDS` |

@@ -5,6 +5,13 @@ Read
 [`docs/agent_instructions.md`](docs/agent_instructions.md) first, then
 [`docs/architecture.md`](docs/architecture.md).
 
+## Find the applicable guidance
+
+- CLI modules: [source guidance](src/AGENTS.md).
+- Script entry points and vendor checks: [script guidance](scripts/AGENTS.md).
+- Fixtures and test selection: [test guidance](tests/AGENTS.md).
+- Manuscript and guides: [documentation guidance](docs/AGENTS.md).
+
 ## Layer contract
 
 | Surface | Rule |
